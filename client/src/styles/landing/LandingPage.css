@@ -1,0 +1,342 @@
+.landing-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #1d1d1f;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+}
+
+/* Hero Section */
+.hero-section {
+  background: linear-gradient(to bottom, #000000, #212121);
+  height: 100vh; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+  padding: 0 20px;
+  animation: fadeIn 1s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-content {
+  max-width: 800px;
+  z-index: 2;
+}
+
+.hero-section h1 {
+  font-size: 56px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  letter-spacing: -0.02em;
+  animation: slideUp 1s ease-out forwards;
+}
+
+.hero-subtitle {
+  font-size: 26px;
+  font-weight: 400;
+  margin-bottom: 40px;
+  opacity: 0.9;
+  animation: slideUp 1s ease-out 0.2s forwards;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.hero-cta {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 40px;
+  animation: slideUp 1s ease-out 0.4s forwards;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.cta-button {
+  padding: 16px 32px;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.cta-button.primary {
+  background-color: #808080; 
+  color: white;
+}
+
+.cta-button.primary:hover {
+  background-color: #666666; 
+  transform: scale(1.05);
+}
+
+.cta-button.secondary {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.cta-button.secondary:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+/* Features Section */
+.features-section {
+  padding: 120px 20px;
+  background-color: #f5f5f7;
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.section-title {
+  font-size: 40px;
+  font-weight: 600;
+  margin-bottom: 60px;
+  letter-spacing: -0.02em;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background-color: white;
+  border-radius: 18px;
+  padding: 40px 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.feature-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.feature-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #f5f5f7;
+  font-size: 36px;
+  color: #0071e3;
+  position: relative;
+}
+
+.book-icon::before {
+  content: "📚";
+  font-size: 40px;
+}
+
+.media-icon::before {
+  content: "🎬";
+  font-size: 40px;
+}
+
+.room-icon::before {
+  content: "🏛️";
+  font-size: 40px;
+}
+
+.event-icon::before {
+  content: "🎭";
+  font-size: 40px;
+}
+
+.feature-card h3 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #1d1d1f;
+}
+
+.feature-card p {
+  font-size: 16px;
+  color: #6e6e73;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Promotional Section */
+.promo-section {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  background-color: #000;
+  color: white;
+  overflow: hidden;
+}
+
+.promo-content {
+  flex: 1;
+  padding: 0 60px;
+  max-width: 500px;
+  margin-left: 8%;
+}
+
+.promo-section h2 {
+  font-size: 48px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  letter-spacing: -0.02em;
+}
+
+.promo-section p {
+  font-size: 18px;
+  line-height: 1.6;
+  margin-bottom: 40px;
+  opacity: 0.9;
+}
+
+.promo-button {
+  padding: 16px 32px;
+  border-radius: 30px;
+  font-size: 18px;
+  font-weight: 500;
+  background-color: #808080; 
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.promo-button:hover {
+  background-color: #666666; 
+  transform: scale(1.05);
+}
+
+.promo-image {
+  flex: 1;
+  height: 100%;
+  background-image: url('https://media.architecturaldigest.com/photos/651c2eaa5af8a7a66fff3eb5/master/w_1600%2Cc_limit/GettyImages-458128417.jpg'); /* Replace with your image path */
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  transition: transform 0.5s ease-out;
+}
+
+
+.promo-image::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3); 
+  z-index: 1;
+}
+
+/* Info Section */
+.info-section {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 30px;
+  padding: 100px 20px;
+  background-color: #fff;
+}
+
+.info-card {
+  background-color: #f5f5f7;
+  border-radius: 12px;
+  padding: 30px;
+  width: 300px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-5px);
+}
+
+.info-card h3 {
+  font-size: 22px;
+  margin-bottom: 15px;
+  color: #1d1d1f;
+}
+
+.info-card p {
+  margin: 8px 0;
+  color: #6e6e73;
+}
+
+/* Footer */
+.landing-footer {
+  background-color: #f5f5f7;
+  padding: 40px 20px;
+  text-align: center;
+  border-top: 1px solid #d2d2d7;
+}
+
+.landing-footer p {
+  color: #86868b;
+  font-size: 14px;
+}
+
+/* Media Queries */
+@media (max-width: 1024px) {
+  .promo-section {
+    flex-direction: column;
+  }
+
+  .promo-image {
+    width: 100%;
+  }
+
+  .info-section {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section h1 {
+    font-size: 40px;
+  }
+  
+  .hero-subtitle {
+    font-size: 22px;
+  }
+  
+  .hero-cta {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .promo-section {
+    flex-direction: column;
+    text-align: center;
+    height: auto;
+    padding: 60px 20px;
+  }
+  
+  .promo-content {
+    margin: 0 auto 40px;
+    padding: 0 20px;
+  }
+  
+  .promo-image {
+    width: 100%;
+    height: 300px;
+  }
+}

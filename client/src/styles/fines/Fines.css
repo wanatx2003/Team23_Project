@@ -1,0 +1,36 @@
+/* Fines table styles */
+.fines-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.fines-table th {
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 12px 15px;
+  text-align: left;
+}
+
+.fines-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.fines-table tr:last-child td {
+  border-bottom: none;
+}
+
+.fines-table tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+/* Highlight unpaid fines */
+.fines-table .unpaid {
+  color: var(--error-color);
+  font-weight: 500;
+}

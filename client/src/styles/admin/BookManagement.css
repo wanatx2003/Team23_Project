@@ -1,0 +1,309 @@
+.book-management {
+  padding: 10px 0;
+}
+
+.book-management h3 {
+  margin-bottom: 25px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+.management-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f5f5f7;
+  border-radius: 8px;
+}
+
+.filters {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.search-input {
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 16px;
+  min-width: 250px;
+}
+
+.category-filter {
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  font-size: 16px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.action-buttons button {
+  padding: 10px 20px;
+  background-color: #0071e3;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-buttons button:hover {
+  background-color: #0058b3;
+  transform: translateY(-2px);
+}
+
+.book-form {
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #f5f5f7;
+  border-radius: 8px;
+}
+
+.book-form h4 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.book-form .form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.book-form .form-group {
+  flex: 1;
+}
+
+.book-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.book-form input,
+.book-form select,
+.book-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.book-form textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.form-actions button {
+  padding: 10px 20px;
+  background-color: #0071e3;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.form-actions button:hover {
+  background-color: #0058b3;
+}
+
+.books-table {
+  width: 100%;
+  border-collapse: collapse;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.books-table thead th {
+  padding: 15px;
+  background-color: #f5f5f7;
+  font-weight: 600;
+  text-align: left;
+}
+
+.books-table tbody td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.books-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.books-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 8px;
+}
+
+.actions-cell button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.actions-cell button:first-child {
+  background-color: #0071e3;
+  color: white;
+}
+
+.actions-cell button:nth-child(2) {
+  background-color: #f5f5f7;
+  color: #1d1d1f;
+}
+
+.actions-cell .delete-btn {
+  background-color: #ff3b30;
+  color: white;
+}
+
+.category-list {
+  margin-bottom: 20px;
+}
+
+.category-list table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.add-category {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #ddd;
+}
+
+.input-group {
+  display: flex;
+  gap: 10px;
+}
+
+.input-group input {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.input-group button {
+  padding: 10px 15px;
+  background-color: #0071e3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.close-btn {
+  display: block;
+  margin: 20px auto 0;
+  padding: 10px 20px;
+  background-color: #f5f5f7;
+  color: #1d1d1f;
+  border: none;
+  border-radius: 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.barcode-container {
+  margin: 20px 0;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: white;
+}
+
+.barcode-info {
+  margin-bottom: 15px;
+}
+
+.barcode-image {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.mockup-barcode {
+  display: inline-block;
+  padding: 10px;
+  background-color: white;
+  border: 1px solid #ddd;
+}
+
+.barcode-line {
+  height: 40px;
+  width: 2px;
+  background-color: black;
+  display: inline-block;
+  margin: 0 3px;
+}
+
+.barcode-number {
+  margin-top: 10px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+}
+
+.barcode-actions {
+  margin-top: 20px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .book-form .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .management-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 15px;
+  }
+  
+  .action-buttons {
+    justify-content: center;
+  }
+  
+  .books-table {
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .actions-cell {
+    flex-direction: column;
+  }
+}

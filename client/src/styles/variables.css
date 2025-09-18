@@ -1,0 +1,30 @@
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2c3e50;
+  --light-color: #ecf0f1;
+  --dark-color: #34495e;
+  --error-color: #e74c3c;
+  --success-color: #2ecc71;
+  --top-bar-height: 64px;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f7fa;
+  margin: 0;
+  padding: 0;
+}
+
+/* App container */
+.app-container {
+  min-height: 100vh;
+}
+
+/* Content container for all screens except login */
+.content-container {
+  padding: 20px;
+  margin-top: var(--top-bar-height);
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}

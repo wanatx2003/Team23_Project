@@ -1,0 +1,205 @@
+/* Main container */
+.home-modern-container {
+  padding: 0;
+  max-width: 100%;
+  margin: 0 auto;
+  background-color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #1d1d1f;
+  overflow-x: hidden;
+}
+
+/* Hero section with dark gradient background */
+.hero-section {
+  height: 70vh;
+  background-image: linear-gradient(to bottom, #000000, #212121);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #ffffff;
+  position: relative;
+  margin-bottom: 60px;
+  text-align: center;
+}
+
+/* Hero title with animation */
+.hero-title {
+  font-size: 56px;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.02em;
+  opacity: 1; 
+  transform: translateY(20px);
+  animation: fadeInUp 1s forwards;
+  color: #ffffff;
+  z-index: 5; 
+}
+
+/* Force hero title visibility */
+.hero-title {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+  animation-fill-mode: forwards !important;
+  z-index: 10;
+  position: relative;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Hero subtitle with delayed animation */
+.hero-subtitle {
+  font-size: 24px !important;
+  font-weight: 400 !important;
+  max-width: 600px;
+  margin: 20px 0 0 0 !important;
+  opacity: 1 !important; /* Force visibility */
+  transform: translateY(0) !important; /* Reset any transform */
+  color: #ffffff !important; /* Force white text */
+  z-index: 10 !important; /* Ensure it's above other elements */
+  position: relative;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5); 
+  animation: none !important; 
+}
+
+/* Content section */
+.content-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 100px 24px;
+}
+
+/* Section title */
+.section-title {
+  font-size: 32px;
+  font-weight: 600;
+  margin: 0 0 40px 0;
+  text-align: center;
+  color: #1d1d1f;
+}
+
+/* Menu container grid layout */
+.menu-container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 25px;
+  margin-bottom: 40px;
+  justify-content: center;
+}
+
+/* Menu item card */
+.menu-item {
+  background-color: #fff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.menu-item:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* Image container with fixed height */
+.menu-item-image-container {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+/* Menu item image */
+.menu-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.menu-item:hover .menu-image {
+  transform: scale(1.05);
+}
+
+/* Menu item content section */
+.menu-item-content {
+  padding: 20px;
+}
+
+/* Menu item title */
+.menu-item-content h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #1d1d1f;
+}
+
+/* Menu item description */
+.menu-item-content p {
+  font-size: 14px;
+  color: #86868b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Data report button */
+.data-report-button {
+  display: block;
+  width: max-content;
+  margin: 60px auto 0;
+  background-color: #0071e3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 15px 30px;
+  font-size: 17px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.data-report-button:hover {
+  background-color: #0056b3;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+}
+
+/* Keyframes for fadeInUp animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0.5; /* Start from higher opacity */
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .menu-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 42px;
+  }
+  
+  .hero-subtitle {
+    font-size: 20px;
+  }
+  
+  .menu-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .menu-container {
+    grid-template-columns: 1fr;
+  }
+}

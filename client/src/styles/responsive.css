@@ -1,0 +1,38 @@
+/* Responsive adjustments for the navigation buttons */
+@media (max-width: 800px) {
+  .nav-buttons {
+    display: none; 
+  }
+}
+
+/* Add responsiveness */
+@media (max-width: 500px) {
+  .login-form {
+    padding: 20px;
+  }
+  
+  .form-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+}
+
+/* Add responsiveness for the top bar */
+@media (max-width: 600px) {
+  .top-bar-content {
+    padding: 0 10px;
+  }
+  
+  .logo {
+    font-size: 20px;
+  }
+  
+  .user-info {
+    font-size: 14px;
+    gap: 8px;
+  }
+}

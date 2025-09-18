@@ -1,0 +1,198 @@
+/* Report Component Styling */
+
+.report-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.report-container h3 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Filters Section */
+.report-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 25px;
+  padding: 15px;
+  background-color: #f5f5f7;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+  flex: 1;
+}
+
+.filter-group label {
+  font-size: 14px;
+  margin-bottom: 5px;
+  color: #555;
+  font-weight: 500;
+}
+
+.filter-group input,
+.filter-group select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+  border-color: #3498db;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.filter-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.filter-actions button {
+  padding: 8px 16px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.filter-actions button:hover {
+  background-color: #2980b9;
+}
+
+.filter-actions button:first-child {
+  background-color: #f1f1f1;
+  color: #333;
+}
+
+.filter-actions button:first-child:hover {
+  background-color: #e1e1e1;
+}
+
+/* Table Styles */
+.report-table-container {
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.report-table th {
+  background-color: #f5f5f7;
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #ddd;
+  position: sticky;
+  top: 0;
+}
+
+.report-table td {
+  padding: 10px 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.report-table tbody tr:hover {
+  background-color: rgba(52, 152, 219, 0.05);
+}
+
+/* Status and Messages */
+.loading-message,
+.error-message,
+.no-data-message {
+  padding: 20px;
+  text-align: center;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.loading-message {
+  background-color: #f9f9f9;
+  color: #666;
+}
+
+.error-message {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.no-data-message {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+/* Report Summary */
+.report-summary {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f0f9ff;
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.report-summary p {
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Modify the report card hover effect to use black */
+.report-container .report-section:hover,
+.report-card:hover,
+.card:hover,
+.report-item:hover {
+  border-color: #1d1d1f !important;
+  box-shadow: 0 0 0 2px rgba(29, 29, 31, 0.2) !important; 
+}
+
+/* For any elements that might use box-shadow for the hover effect */
+.report-container .report-section:hover,
+.report-card:hover,
+.card:hover,
+.report-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important; 
+}
+
+/* For any elements that might use bottom border for the hover effect */
+.report-container .report-section:hover,
+.report-card:hover,
+.card:hover,
+.report-item:hover {
+  border-bottom-color: #1d1d1f !important; 
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .filter-group {
+    min-width: 100%;
+  }
+  
+  .filter-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

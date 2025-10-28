@@ -3,30 +3,42 @@ const url = require("url");
 const handleRequest = require("./routes/index");
 const { sendJsonResponse } = require("./utils/requestUtils");
 
-// Import the sendEmail function
-const sendEmail = require("../sendEmail");
+// Import route modules
+const userRoutes = require('./routes/userRoutes');
+const eventRoutes = require('./routes/eventRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
-const server = http.createServer(async (req, res) => {
-  // Parse the incoming URL for routing
-  const parsedUrl = url.parse(req.url, true);
-  const { method, url: reqUrl } = req;
-  console.log(`${method} ${reqUrl}`);
-
-  // Add CORS headers for local development
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+const server = http.createServer((req, res) => {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
 
-  // Handle preflight requests
   if (req.method === 'OPTIONS') {
     res.writeHead(200);
     res.end();
     return;
   }
 
-  // Process the request with our main handler
-  await handleRequest(req, res);
+  const method = req.method;
+  const requestUrl = req.url || '';  // Ensure url is always a string
+  
+  console.log(`${method} ${requestUrl}`);
+
+  // User routes
+  if (requestUrl.startsWith('/api/user/profile/') && method === 'GET') {
+    const userId = requestUrl.split('/').pop();
+    userRoutes.getUserProfile(req, res, userId);
+  } else if (requestUrl === '/api/user/profile' && method === 'PUT') {
+    userRoutes.updateUserProfile(req, res);
+  } else if (requestUrl === '/api/user/states' && method === 'GET') {
+    userRoutes.getStates(req, res);
+  } else if (requestUrl === '/api/user/skills' && method === 'GET') {
+    userRoutes.getAvailableSkills(req, res);
+  } else {
+    // Process the request with our main handler
+    handleRequest(req, res);
+  }
 });
 
 // Start the server

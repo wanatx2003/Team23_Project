@@ -36,21 +36,34 @@ const sendEmails = async () => {
           return;
         }
 
+        console.log(`Found ${results.length} unread notifications to process`);
+
         for (const notification of results) {
           const mailOptions = {
-            from: "Volunteer Management System <databaselibrary7@gmail.com>",
+            from: "VolunteerConnect System <databaselibrary7@gmail.com>",
             to: notification.Email,
             subject: notification.Subject,
             text: notification.Message,
             html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #667eea;">Volunteer Management System</h2>
-                <h3>${notification.Subject}</h3>
-                <p>${notification.Message.replace(/\n/g, "<br>")}</p>
-                <hr>
-                <p style="color: #666; font-size: 12px;">
-                  This is an automated message from the Volunteer Management System.
-                </p>
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                  <h1 style="color: #667eea; margin: 0;">VolunteerConnect</h1>
+                  <p style="color: #666; margin: 5px 0;">Connecting volunteers with meaningful opportunities</p>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                  <h2 style="color: #333; margin: 0 0 15px 0;">${notification.Subject}</h2>
+                  <div style="color: #555; line-height: 1.6;">
+                    ${notification.Message.replace(/\n/g, "<br>")}
+                  </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                  <p style="color: #888; font-size: 12px; margin: 0;">
+                    This is an automated message from the VolunteerConnect System.<br>
+                    Please do not reply to this email.
+                  </p>
+                </div>
               </div>
             `,
           };
@@ -68,27 +81,22 @@ const sendEmails = async () => {
                   console.error("Error updating notification status:", err);
                 } else {
                   console.log(
-                    "Email sent to:",
-                    notification.Email,
-                    "for notification:",
-                    notification.Subject
+                    `✓ Email sent to ${notification.Email} - Subject: "${notification.Subject}"`
                   );
                 }
               }
             );
           } catch (error) {
             console.error(
-              "Error sending email to",
-              notification.Email,
-              ":",
-              error
+              `✗ Failed to send email to ${notification.Email}:`,
+              error.message
             );
           }
         }
       }
     );
   } catch (error) {
-    console.error("Error in sendEmails:", error);
+    console.error("Error in sendEmails function:", error);
   }
 };
 
@@ -97,13 +105,20 @@ pool.getConnection((err, connection) => {
   if (err) {
     console.error("Email service: Error connecting to MySQL database:", err);
   } else {
-    console.log("Email service: Connected to volunteer_management database");
+    console.log("✓ Email service: Connected to volunteer_management database");
     connection.release();
   }
 });
 
 // Run sendEmails every 2 minutes for volunteer notifications
-setInterval(sendEmails, 120000); // Check for new emails every 2 minutes
+console.log("Starting VolunteerConnect Email Service...");
+console.log("Checking for notifications every 2 minutes");
+
+// Send emails immediately on startup
+sendEmails();
+
+// Then check every 2 minutes
+setInterval(sendEmails, 120000);
 
 // Create a simple HTTP server to allow accessing the email service
 const server = http.createServer((req, res) => {
@@ -111,13 +126,16 @@ const server = http.createServer((req, res) => {
   res.end(
     JSON.stringify({
       status: "running",
-      service: "Volunteer Management Email Service",
+      service: "VolunteerConnect Email Service",
       database: "volunteer_management",
       host: "127.0.0.1:3306",
+      checkInterval: "120 seconds",
+      lastCheck: new Date().toISOString(),
     })
   );
 });
 
 server.listen(3001, () => {
-  console.log("Volunteer Management Email service running on port 3001");
+  console.log("✓ VolunteerConnect Email service running on port 3001");
+  console.log("  Visit http://localhost:3001 to check service status");
 });

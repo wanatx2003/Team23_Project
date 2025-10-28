@@ -6,7 +6,6 @@ const TopBar = ({
   userData, 
   handleLogout, 
   navigateToProfile,
-  navigateToEvents,
   navigateToEventManagement,
   navigateToMatching,
   navigateToHistory,
@@ -70,16 +69,6 @@ const TopBar = ({
         </div>
         
         <div className="nav-buttons">
-          <button 
-            onClick={navigateToEvents} 
-            className="nav-button"
-            onMouseEnter={() => setHoveredButton('events')}
-            onMouseLeave={() => setHoveredButton(null)}
-            style={hoveredButton === 'events' ? glowEffect : {}}
-          >
-            Events
-          </button>
-
           <button 
             onClick={navigateToHistory} 
             className="nav-button"

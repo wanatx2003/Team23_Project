@@ -141,7 +141,6 @@ function App() {
           handleLogout={handleLogout}
           navigateToHome={navigateToHome}
           navigateToProfile={navigateToProfile}
-          navigateToEvents={navigateToEvents}
           navigateToEventManagement={navigateToEventManagement}
           navigateToMatching={navigateToMatching}
           navigateToHistory={navigateToHistory}

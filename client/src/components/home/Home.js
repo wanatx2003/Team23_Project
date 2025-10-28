@@ -4,11 +4,10 @@ import "../../styles/home/Home.css";
 const Home = ({
   userData,
   navigateToProfile,
-  navigateToEvents,
+  navigateToEventManagement,
   navigateToMatching,
   navigateToHistory,
-  navigateToNotifications,
-  navigateToEventManagement
+  navigateToNotifications
 }) => {
   const isAdmin = userData?.Role === "admin";
 
@@ -85,20 +84,6 @@ const Home = ({
             <div className="menu-item-content">
               <h3>My Profile</h3>
               <p>Manage your personal information, skills, and availability</p>
-            </div>
-          </div>
-
-          <div className="menu-item" onClick={navigateToEvents}>
-            <div className="menu-item-image-container">
-              <img 
-                src="https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=300&fit=crop" 
-                alt="Events" 
-                className="menu-image" 
-              />
-            </div>
-            <div className="menu-item-content">
-              <h3>Available Events</h3>
-              <p>Browse and sign up for volunteer opportunities</p>
             </div>
           </div>
 

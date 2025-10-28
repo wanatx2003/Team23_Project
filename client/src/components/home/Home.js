@@ -3,19 +3,14 @@ import "../../styles/home/Home.css";
 
 const Home = ({
   userData,
-  navigateToBooks,
-  navigateToMedia,
-  navigateToDevices,
-  navigateToLoans,
-  navigateToHolds,
-  navigateToFines,
-  navigateToRooms,
-  navigateToRoomManagement, // Add this new navigation function
-  navigateToDataReport,
+  navigateToProfile,
   navigateToEvents,
-  navigateToAdminDashboard,
+  navigateToMatching,
+  navigateToHistory,
+  navigateToNotifications,
+  navigateToEventManagement
 }) => {
-  const isAdmin = userData?.Role === "Admin";
+  const isAdmin = userData?.Role === "admin";
 
   // Add animation styles on component mount
   useEffect(() => {
@@ -63,185 +58,108 @@ const Home = ({
     <div className="home-modern-container">
       {/* Hero Section */}
       <div className="hero-section">
-        <h1
-          className="hero-title"
-          style={{
-            fontSize: "56px",
-            fontWeight: "600",
-            margin: "0",
-            letterSpacing: "-0.02em",
-            opacity: "1", 
-            color: "white",
-            position: "relative",
-            zIndex: "10",
-            textShadow: "0 1px 2px rgba(0,0,0,0.5)",
-            animation: "fadeInUp 0.5s ease", // Simplified animation property
-          }}
-        >
-          Welcome to BookFinder
+        <h1 className="hero-title">
+          Welcome to Volunteer Connect
         </h1>
         <p>
-          You are logged in as {userData.FirstName} with role {userData.Role}
+          Welcome back, {userData.FirstName}! Ready to make a difference today?
         </p>
-        {/* Added inline styles to ensure subtitle visibility */}
-        <p
-          className="hero-subtitle"
-          style={{
-            color: "white",
-            opacity: 1,
-            fontSize: "24px",
-            marginTop: "20px",
-            fontWeight: "400",
-            position: "relative",
-            zIndex: 10,
-          }}
-        >
-          Explore our collection of books, devices, media, and more!
+        <p className="hero-subtitle">
+          Connect with meaningful volunteer opportunities and track your impact in the community
         </p>
       </div>
 
       {/* Content Section */}
       <div className="content-section">
-        <h2 className="section-title">Library Services</h2>
+        <h2 className="section-title">Volunteer Dashboard</h2>
 
         <div id="menu-grid" className="menu-container fade-in-items">
-          <div className="menu-item" onClick={() => navigateToBooks("all")}>
+          <div className="menu-item" onClick={navigateToProfile}>
             <div className="menu-item-image-container">
-              <img src="/images/book.jpg" alt="Books" className="menu-image" />
-            </div>
-            <div className="menu-item-content">
-              <h3>Books</h3>
-              <p>
-                Browse our extensive collection of books across various genres
-              </p>
-            </div>
-          </div>
-
-          <div className="menu-item" onClick={() => navigateToMedia("all")}>
-            <div className="menu-item-image-container">
-              <img src="/images/media.jpg" alt="Media" className="menu-image" />
-            </div>
-            <div className="menu-item-content">
-              <h3>Media</h3>
-              <p>Discover music, movies, and other digital content</p>
-            </div>
-          </div>
-
-          <div className="menu-item" onClick={() => navigateToDevices("all")}>
-            <div className="menu-item-image-container">
-              <img
-                src="https://cache.getarchive.net/Prod/thumb/cdn12/L3Bob3RvLzIwMTYvMTIvMzEvaXBhZC1zYW1zdW5nLW11c2ljLW11c2ljLTA3MDM4OC0xMDI0LmpwZw%3D%3D/320/212/jpg"
-                alt="Devices"
-                className="menu-image"
+              <img 
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop" 
+                alt="Profile" 
+                className="menu-image" 
               />
             </div>
             <div className="menu-item-content">
-              <h3>Devices</h3>
-              <p>Borrow iPad, laptops, and headphone</p>
+              <h3>My Profile</h3>
+              <p>Manage your personal information, skills, and availability</p>
             </div>
           </div>
 
-          <div className="menu-item" onClick={navigateToLoans}>
+          <div className="menu-item" onClick={navigateToEvents}>
             <div className="menu-item-image-container">
-              <img
-                src="https://hips.hearstapps.com/hmg-prod/images/how-to-get-a-personal-loan-1584033069.jpg"
-                alt="Loans"
-                className="menu-image"
+              <img 
+                src="https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=300&fit=crop" 
+                alt="Events" 
+                className="menu-image" 
               />
             </div>
             <div className="menu-item-content">
-              <h3>Loans</h3>
-              <p>Manage your current loans and borrowing history</p>
+              <h3>Available Events</h3>
+              <p>Browse and sign up for volunteer opportunities</p>
             </div>
           </div>
 
-          {/* Add the Holds menu item */}
-          <div className="menu-item" onClick={navigateToHolds}>
+          <div className="menu-item" onClick={navigateToHistory}>
             <div className="menu-item-image-container">
-              <img
-                src="https://www.northbrook.info/sites/default/files/large-feature/hold-shelves_0.jpg"
-                alt="Holds"
-                className="menu-image"
+              <img 
+                src="https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=300&fit=crop" 
+                alt="History" 
+                className="menu-image" 
               />
             </div>
             <div className="menu-item-content">
-              <h3>Holds</h3>
-              <p>View and manage your current book holds</p>
+              <h3>Volunteer History</h3>
+              <p>View your past volunteer activities and achievements</p>
             </div>
           </div>
 
-          {/* Add the Fines menu item - place it after Holds */}
-          <div className="menu-item" onClick={navigateToFines}>
+          <div className="menu-item" onClick={navigateToNotifications}>
             <div className="menu-item-image-container">
-              <img
-                src="https://pacificlegal.org/wp-content/uploads/2018/09/excessive-fines.jpg"
-                alt="Fines"
-                className="menu-image"
+              <img 
+                src="https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400&h=300&fit=crop" 
+                alt="Notifications" 
+                className="menu-image" 
               />
             </div>
             <div className="menu-item-content">
-              <h3>Fines</h3>
-              <p>View and pay your outstanding library fines</p>
-            </div>
-          </div>
-
-          <div className="menu-item" onClick={navigateToRooms}>
-            <div className="menu-item-image-container">
-              <img src="/images/rooms.jpg" alt="Rooms" className="menu-image" />
-            </div>
-            <div className="menu-item-content">
-              <h3>Rooms</h3>
-              <p>Reserve private study rooms and meeting spaces</p>
-            </div>
-          </div>
-
-          {/* Add Room Management menu item */}
-          {isAdmin ||
-          userData?.Role === "Student" ||
-          userData?.Role === "Faculty" ? (
-            <div className="menu-item" onClick={navigateToRoomManagement}>
-              <div className="menu-item-image-container">
-                <img
-                  src="https://i0.wp.com/arabianhomes.sa/wp-content/uploads/2021/09/Booking-System-For-Meeting-Rooms.png?fit=1000%2C760&ssl=1.jpg"
-                  alt="Room Management"
-                  className="menu-image"
-                />
-              </div>
-              <div className="menu-item-content">
-                <h3>Room Management</h3>
-                <p>View and cancel your current room reservations</p>
-              </div>
-            </div>
-          ) : null}
-
-          <div className="menu-item" onClick={() => navigateToEvents("all")}>
-            <div className="menu-item-image-container">
-              <img
-                src="/images/events.jpg"
-                alt="Events"
-                className="menu-image"
-              />
-            </div>
-            <div className="menu-item-content">
-              <h3>Events</h3>
-              <p>Check out upcoming library events and activities</p>
+              <h3>Notifications</h3>
+              <p>Stay updated with event assignments and reminders</p>
             </div>
           </div>
 
           {isAdmin && (
-            <div className="menu-item" onClick={navigateToAdminDashboard}>
-              <div className="menu-item-image-container">
-                <img
-                  src="https://media.istockphoto.com/id/1157569047/photo/red-arrow-moving-up-over-graph-paper-background.jpg?s=612x612&w=0&k=20&c=h_mHs726U_Osy2IapdLYJCfZHQoh8oxfG_lJoG4SwXI="
-                  alt="Reports"
-                  className="menu-image"
-                />
+            <>
+              <div className="menu-item" onClick={navigateToEventManagement}>
+                <div className="menu-item-image-container">
+                  <img 
+                    src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=300&fit=crop" 
+                    alt="Event Management" 
+                    className="menu-image" 
+                  />
+                </div>
+                <div className="menu-item-content">
+                  <h3>Event Management</h3>
+                  <p>Create and manage volunteer events and opportunities</p>
+                </div>
               </div>
-              <div className="menu-item-content">
-                <h3>Reports</h3>
-                <p>Access administrative tools and reports</p>
+
+              <div className="menu-item" onClick={navigateToMatching}>
+                <div className="menu-item-image-container">
+                  <img 
+                    src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&h=300&fit=crop" 
+                    alt="Volunteer Matching" 
+                    className="menu-image" 
+                  />
+                </div>
+                <div className="menu-item-content">
+                  <h3>Volunteer Matching</h3>
+                  <p>Match volunteers with suitable events based on skills</p>
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
       </div>

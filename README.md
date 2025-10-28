@@ -1,15 +1,14 @@
-# Team 7 Library Database Project
+# Volunteer Management System
 
-This project was created for the course Database Systems (3380) at the University of Houston. The objective of our design was to create a library database website named BookFinder where users such as Faculty, Admin, and Student are able to use the library website.
+This project was created as a comprehensive volunteer management platform where volunteers and administrators can connect, manage events, and track volunteer activities.
 
 ## About 
-BookFinder is our custom-made library management system made for a university, which have users such as students, faculty, and administrators. It provides them a digital interface for browsing and managing books, music, and electronics. Since there are three roles with different access to the website, there will exist special features where each role has different checkouts, waitlists, fines, and admin tasks. The website will have triggers and data reports.
+This is a custom-made volunteer management system that allows volunteers to register, complete their profiles, and sign up for events. Administrators can create events, match volunteers to suitable opportunities, and track volunteer participation history.
 
 ## Technologies Used:
 
 ### Frontend
-![React](https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=white&style=flat-square) &nbsp;&nbsp; ![Tailwind CSS](https://img.shields.io/badge/-Tailwind%20CSS-38B2AC?logo=tailwind-css&logoColor=white&style=flat-square)
-
+![React](https://img.shields.io/badge/-React-61DAFB?logo=react&logoColor=white&style=flat-square)
 
 ### Backend
 ![Node.js](https://img.shields.io/badge/-Node.js-339933?logo=node.js&logoColor=white&style=flat-square) 
@@ -20,96 +19,86 @@ BookFinder is our custom-made library management system made for a university, w
 ### Version Control:
 ![GitHub](https://img.shields.io/badge/-GitHub-181717?logo=github&logoColor=white&style=flat-square)
 
-### Deployment
-![Oracle](https://img.shields.io/badge/-Oracle-F80000?logo=oracle&logoColor=white&style=flat-square) &nbsp;&nbsp; ![Oracle](https://img.shields.io/badge/-Oracle-F80000?logo=oracle&logoColor=white&style=flat-square) &nbsp;&nbsp; ![Azure](https://img.shields.io/badge/-Azure-0078D4?logo=microsoft-azure&logoColor=white&style=flat-square)
+## Local Setup Instructions
 
-## How to host website locally
+### Prerequisites
+1. **Node.js and npm** - Use the `setup-nodejs.bat` file or download from [https://nodejs.org/](https://nodejs.org/)
+2. **MySQL Server** - Make sure MySQL is running on localhost:3306
+   - Database: `volunteer_management`
+   - Username: `root`
+   - Password: `!Mm042326323`
 
-### Cloning the repository
+### Database Setup
+1. Start your MySQL server
+2. Create the database and tables using the provided SQL file:
+   ```sql
+   mysql -u root -p"!Mm042326323" < sql/volunteer_management.sql
+   ```
+
+### Running the Application
+
+#### Easy Start (Recommended)
+1. **Start Backend Server**: Double-click `start-server.bat`
+2. **Start Email Service**: Double-click `start-email-service.bat`
+3. **Start Frontend**: Double-click `start-client.bat`
+
+#### Manual Start
 ```bash
-git clone https://github.com/dahrail/Library-Database
-cd client
-code .
-```
-
-### Deploying the website
-```bash
-cd client
-npx create-react-app .
-npm install react-scripts
-npm start
-```
-
-### Deploying the backend/server
-```bash
-Backend:
+# Terminal 1 - Start the backend server
 cd server
-npm install react react-dom
+npm install
+npm start
+
+# Terminal 2 - Start the email service
+cd server
+npm run email-service
+
+# Terminal 3 - Start the frontend client
+cd client
+npm install
 npm start
 ```
 
-Deployed Website: http://170.9.244.55:3000/
+### Application URLs
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:5000
+- **Email Service**: http://localhost:3001
 
-## 5 Must Haves
+## System Features
 
-1. **User authentication for different user roles**
-   - The system supports authentication for Students, Faculty, and Admins, each with different permissions and access levels.
+### For Volunteers:
+- **Registration & Login** - Simple email/password registration
+- **Profile Management** - Complete profile with skills, location, and availability
+- **Event Browsing** - View available volunteer opportunities
+- **Notifications** - Receive updates about event assignments
+- **Volunteer History** - Track participation and hours volunteered
 
-2. **Data entry forms**
-   - The application provides forms to add, update, and delete data for books, media, devices, rooms, events, and users. Admins can manage inventory and user records through intuitive interfaces.
+### For Administrators:
+- **Event Management** - Create and manage volunteer events
+- **Volunteer Matching** - Match volunteers to events based on skills
+- **Participant Tracking** - Monitor volunteer participation and history
+- **Notification System** - Send updates to volunteers
 
-3. **Triggers (At least 2)**
-   - The backend database implements triggers, such as:
-     - Automatically generating a fine when an item is overdue.
-     - Updating item availability when a loan is returned or a reservation is cancelled.
+### Database Schema
+The system uses the following main tables:
+- `UserCredentials` - User login information
+- `UserProfile` - Detailed user profiles
+- `UserSkill` - Volunteer skills
+- `EventDetails` - Event information
+- `VolunteerMatches` - Volunteer-event assignments
+- `VolunteerHistory` - Participation tracking
+- `Notifications` - System notifications
 
-4. **Data queries (At least 3)**
-   - The application executes various queries, including:
-     - Retrieving available items by category and genre.
-     - Fetching user loan and fine history.
-     - Searching and filtering items and users based on multiple criteria.
+## Validation Features
+- **Required Field Validation** - All forms validate required fields
+- **Character Limits** - Enforced on frontend and backend
+- **Email Format Validation** - Proper email format checking
+- **Skill Matching** - Events matched based on required skills
+- **Date Validation** - Proper date formatting and validation
 
-5. **Data reports (At least 3)**
-   - The admin dashboard features multiple reports:
-     - **Item Report:** Usage statistics for books, media, and devices (borrows, holds, etc.).
-     - **User Report:** User activity, loan history, and borrowing patterns.
-     - **Fines Report:** Fines data with payment status tracking.
-     - **Event Report:** Attendance, check-in rates, and room utilization for events.
-
-## Project Functionality
-
-BookFinder provides a comprehensive library management system with the following features:
-
-### User Authentication and Role Management
-- **Students**: Can borrow two item per category with a one-week checkout period
-- **Faculty**: Can borrow three items per category with a two-week checkout period
-- **Admins**: Have complete control over inventory management and reporting
-
-### Inventory Management
-- Books, media, and electronics cataloging
-- ISBN validation ensures accurate book information
-- Inventory tracking for available and checked-out items
-- Detailed item information including publication dates, authors, and genres
-
-### Borrowing System
-- Check out and check in functionality
-- Reservation system for unavailable items
-- Waitlist management with automatic notifications
-- Due date tracking and reminders
-
-### Reporting and Analytics
-- Fines reporting with payment status tracking
-- Item usage statistics showing popular materials
-- User activity reports for administrative oversight
-- Event attendance and registration tracking
-
-### Room and Event Management
-- Room reservation system
-- Event scheduling and management
-- Attendance tracking for library events
-- Room utilization reporting
-
-### Financial Management
-- Fine calculation based on overdue items
-- Payment processing and tracking
-- Outstanding balance reporting
+## Email Notifications
+The system includes an automated email service that sends:
+- Welcome emails for new registrations
+- Event assignment notifications
+- Reminder emails for upcoming events
+- Status updates for event changes

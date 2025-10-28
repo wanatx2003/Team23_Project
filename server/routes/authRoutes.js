@@ -8,7 +8,7 @@ const login = async (req, res) => {
     console.log('Login attempt for email:', body.email);
     
     pool.query(
-      'SELECT UserID, FirstName, Role FROM USER WHERE Email = ? AND Password = ?',
+      'SELECT UserID, FirstName, Role FROM UserCredentials WHERE Email = ? AND Password = ?',
       [body.email, body.password],
       (err, results) => {
         if (err) {
@@ -40,13 +40,13 @@ const register = async (req, res) => {
     console.log('Registration attempt for:', Email);
     
     const query = `
-      INSERT INTO USER (Username, Password, FirstName, LastName, Email, PhoneNumber, Role, AccountCreateAt, AccountStatus)
+      INSERT INTO UserCredentials (Username, Password, FirstName, LastName, Email, PhoneNumber, Role, AccountCreatedAt, AccountStatus)
       VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), 'Active')
     `;
 
     pool.query(
       query,
-      [Username, Password, FirstName, LastName, Email, PhoneNumber, Role],
+      [Username, Password, FirstName, LastName, Email, PhoneNumber, Role || 'volunteer'],
       (err, results) => {
         if (err) {
           console.error('Error registering user:', err);
@@ -55,7 +55,7 @@ const register = async (req, res) => {
         }
 
         console.log('User registered successfully:', Email);
-        sendJsonResponse(res, 200, { success: true });
+        sendJsonResponse(res, 200, { success: true, userID: results.insertId });
       }
     );
   } catch (error) {
@@ -68,7 +68,7 @@ const register = async (req, res) => {
 const getAllUsers = (req, res) => {
   console.log('Fetching all users');
   
-  pool.query('SELECT * FROM USER', (err, result) => {
+  pool.query('SELECT * FROM UserCredentials', (err, result) => {
     if (err) {
       console.error("Error executing query:", err);
       sendJsonResponse(res, 500, { error: "Error executing query" });

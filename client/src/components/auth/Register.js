@@ -1,174 +1,198 @@
 import React, { useState } from 'react';
-import '../../styles/auth/Auth.css';
-import PasscodeModal from './PasscodeModal';
+import '../../styles/auth/Register.css';
 
-const Register = ({ onRegister, navigateToLogin, navigateToRegisterAsFaculty }) => {
-  const [newUser, setNewUser] = useState({
+const Register = ({ onRegister, navigateToLogin }) => {
+  const [formData, setFormData] = useState({
     Username: '',
     Password: '',
+    confirmPassword: '',
     FirstName: '',
     LastName: '',
     Email: '',
-    PhoneNumber: ''
+    PhoneNumber: '',
+    Role: 'volunteer'
   });
-
-  const [phoneParts, setPhoneParts] = useState({ part1: '', part2: '', part3: '' });
-  const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setNewUser((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handlePhoneChange = (e) => {
-    const { name, value } = e.target;
-    if (/^\d*$/.test(value) && value.length <= (name === 'part1' || name === 'part2' ? 3 : 4)) {
-      setPhoneParts((prev) => ({ ...prev, [name]: value }));
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+    // Clear error when user starts typing
+    if (errors[e.target.name]) {
+      setErrors({
+        ...errors,
+        [e.target.name]: ''
+      });
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const combinedPhoneNumber = parseInt(`${phoneParts.part1}${phoneParts.part2}${phoneParts.part3}`, 10);
-    onRegister({ ...newUser, PhoneNumber: combinedPhoneNumber });
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.Username.trim()) newErrors.Username = 'Username is required';
+    if (!formData.Email.trim()) newErrors.Email = 'Email is required';
+    if (!formData.Email.includes('@')) newErrors.Email = 'Please enter a valid email';
+    if (!formData.Password) newErrors.Password = 'Password is required';
+    if (formData.Password.length < 6) newErrors.Password = 'Password must be at least 6 characters';
+    if (formData.Password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+    if (!formData.FirstName.trim()) newErrors.FirstName = 'First name is required';
+    if (!formData.LastName.trim()) newErrors.LastName = 'Last name is required';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleFacultyRegister = () => {
-    setIsPasscodeModalOpen(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+
+    setLoading(true);
+    try {
+      await onRegister(formData);
+    } catch (error) {
+      console.error('Registration error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="register-container">
-      <form onSubmit={handleSubmit} className="register-form">
-        <h2 className="register-title">Create Account</h2>
-        <p className="register-subtitle">Join BookFinder</p>
-        
-        <div className="form-row">
-          <div className="form-group">
-            <label>First Name</label>
-            <input
-              type="text"
-              name="FirstName"
-              value={newUser.FirstName}
-              onChange={handleChange}
-              required
-              className="form-input"
-              placeholder="Enter your first name"
-            />
+      <div className="register-hero">
+        <h1>Join Our Volunteer Community</h1>
+        <p>Start making a difference in your community today</p>
+      </div>
+      
+      <div className="register-form-container">
+        <div className="register-form-wrapper">
+          <h2>Create Your Account</h2>
+          <form onSubmit={handleSubmit} className="register-form">
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="FirstName">First Name *</label>
+                <input
+                  type="text"
+                  id="FirstName"
+                  name="FirstName"
+                  value={formData.FirstName}
+                  onChange={handleChange}
+                  placeholder="Enter your first name"
+                />
+                {errors.FirstName && <span className="error">{errors.FirstName}</span>}
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="LastName">Last Name *</label>
+                <input
+                  type="text"
+                  id="LastName"
+                  name="LastName"
+                  value={formData.LastName}
+                  onChange={handleChange}
+                  placeholder="Enter your last name"
+                />
+                {errors.LastName && <span className="error">{errors.LastName}</span>}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="Username">Username *</label>
+              <input
+                type="text"
+                id="Username"
+                name="Username"
+                value={formData.Username}
+                onChange={handleChange}
+                placeholder="Choose a username"
+              />
+              {errors.Username && <span className="error">{errors.Username}</span>}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="Email">Email Address *</label>
+              <input
+                type="email"
+                id="Email"
+                name="Email"
+                value={formData.Email}
+                onChange={handleChange}
+                placeholder="Enter your email address"
+              />
+              {errors.Email && <span className="error">{errors.Email}</span>}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="PhoneNumber">Phone Number</label>
+              <input
+                type="tel"
+                id="PhoneNumber"
+                name="PhoneNumber"
+                value={formData.PhoneNumber}
+                onChange={handleChange}
+                placeholder="Enter your phone number"
+              />
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="Password">Password *</label>
+                <input
+                  type="password"
+                  id="Password"
+                  name="Password"
+                  value={formData.Password}
+                  onChange={handleChange}
+                  placeholder="Enter your password"
+                />
+                {errors.Password && <span className="error">{errors.Password}</span>}
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="confirmPassword">Confirm Password *</label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Confirm your password"
+                />
+                {errors.confirmPassword && <span className="error">{errors.confirmPassword}</span>}
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="Role">Account Type</label>
+              <select
+                id="Role"
+                name="Role"
+                value={formData.Role}
+                onChange={handleChange}
+              >
+                <option value="volunteer">Volunteer</option>
+                <option value="admin">Administrator</option>
+              </select>
+            </div>
+
+            <button type="submit" className="register-button" disabled={loading}>
+              {loading ? 'Creating Account...' : 'Create Account'}
+            </button>
+          </form>
+
+          <div className="login-link">
+            <p>Already have an account?</p>
+            <button onClick={navigateToLogin} className="login-link-button">
+              Sign In
+            </button>
           </div>
-          <div className="form-group">
-            <label>Last Name</label>
-            <input
-              type="text"
-              name="LastName"
-              value={newUser.LastName}
-              onChange={handleChange}
-              required
-              className="form-input"
-              placeholder="Enter your last name"
-            />
-          </div>
         </div>
-
-        <div className="form-group">
-          <label>Email</label>
-          <input
-            type="email"
-            name="Email"
-            value={newUser.Email}
-            onChange={handleChange}
-            required
-            className="form-input"
-            placeholder="Enter your email"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Username</label>
-          <input
-            type="text"
-            name="Username"
-            value={newUser.Username}
-            onChange={handleChange}
-            required
-            className="form-input"
-            placeholder="Choose a username"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Password</label>
-          <input
-            type="password"
-            name="Password"
-            value={newUser.Password}
-            onChange={handleChange}
-            required
-            className="form-input"
-            placeholder="Create a password"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Phone Number</label>
-          <div className="phone-input-group">
-            <input
-              type="text"
-              name="part1"
-              value={phoneParts.part1}
-              onChange={handlePhoneChange}
-              required
-              placeholder="XXX"
-              maxLength="3"
-              className="phone-input"
-            />
-            <span className="phone-separator">-</span>
-            <input
-              type="text"
-              name="part2"
-              value={phoneParts.part2}
-              onChange={handlePhoneChange}
-              required
-              placeholder="XXX"
-              maxLength="3"
-              className="phone-input"
-            />
-            <span className="phone-separator">-</span>
-            <input
-              type="text"
-              name="part3"
-              value={phoneParts.part3}
-              onChange={handlePhoneChange}
-              required
-              placeholder="XXXX"
-              maxLength="4"
-              className="phone-input"
-            />
-          </div>
-        </div>
-
-        <div className="form-buttons">
-          <button type="submit" className="btn btn-secondary">Register</button>
-        </div>
-        
-        <div className="form-links">
-          <button type="button" onClick={navigateToLogin} className="btn-link">
-            Already have an account? Login
-          </button>
-          <button type="button" onClick={handleFacultyRegister} className="btn-link faculty-link">
-            Register as Faculty
-          </button>
-        </div>
-      </form>
-
-      <PasscodeModal 
-        isOpen={isPasscodeModalOpen}
-        onClose={() => setIsPasscodeModalOpen(false)}
-        onSubmit={() => {
-          setIsPasscodeModalOpen(false);
-          navigateToRegisterAsFaculty();
-        }}
-      />
+      </div>
     </div>
   );
 };

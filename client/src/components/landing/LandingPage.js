@@ -3,16 +3,12 @@ import '../../styles/landing/LandingPage.css';
 import '../../styles/animations/ScrollAnimations.css';
 
 const LandingPage = ({ 
-  navigateToBooks, 
-  navigateToMedia, 
-  navigateToRooms, 
-  navigateToEvents 
+  navigateToLogin, 
+  navigateToRegister 
 }) => {
   // Add scroll-to-top wrappers for navigation
-  const handleNavigateToBooks = () => { window.scrollTo(0,0); navigateToBooks(); };
-  const handleNavigateToMedia = () => { window.scrollTo(0,0); navigateToMedia(); };
-  const handleNavigateToRooms = () => { window.scrollTo(0,0); navigateToRooms(); };
-  const handleNavigateToEvents = () => { window.scrollTo(0,0); navigateToEvents(); };
+  const handleNavigateToLogin = () => { window.scrollTo(0,0); navigateToLogin(); };
+  const handleNavigateToRegister = () => { window.scrollTo(0,0); navigateToRegister(); };
 
   // Add animation styles on component mount
   useEffect(() => {
@@ -67,91 +63,172 @@ const LandingPage = ({
   return (
     <div className="landing-container">
       {/* Hero Section */}
-      <section className="hero-section parallax-bg">
+      <section className="hero-section">
         <div className="hero-content">
-          <h1>Welcome to BookFinder</h1>
-          <p className="hero-subtitle">Your University Library Portal</p>
-          <div className="hero-cta">
-            <button onClick={handleNavigateToBooks} className="cta-button primary">
-              Explore Books
+          <h1 className="hero-title">VolunteerConnect</h1>
+          <p className="hero-subtitle">
+            Connecting passionate volunteers with meaningful opportunities in their community
+          </p>
+          <p className="hero-description">
+            Join our platform to discover volunteer opportunities that match your skills, 
+            schedule, and interests. Make a difference while building valuable connections.
+          </p>
+          
+          <div className="hero-buttons">
+            <button onClick={handleNavigateToRegister} className="cta-button primary">
+              Get Started
             </button>
-            <button onClick={handleNavigateToMedia} className="cta-button secondary">
-              Discover Media
+            <button onClick={handleNavigateToLogin} className="cta-button secondary">
+              Sign In
             </button>
           </div>
         </div>
+        
+        <div className="hero-image">
+          <img 
+            src="https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=600&h=400&fit=crop" 
+            alt="Volunteers working together" 
+          />
+        </div>
       </section>
 
-      {/* Feature Highlights */}
+      {/* Features Section */}
       <section className="features-section">
-        <h2 className="section-title scroll-animate from-bottom">Library Services</h2>
-        
-        <div className="features-grid">
-          <div className="feature-card scroll-animate from-left delay-100" onClick={handleNavigateToBooks}>
-            <div className="feature-icon book-icon"></div>
-            <h3>Extensive Book Collection</h3>
-            <p>Browse through our books across all genres and subjects</p>
-          </div>
+        <div className="container">
+          <h2>Why Choose VolunteerConnect?</h2>
           
-          <div className="feature-card scroll-animate from-bottom delay-200" onClick={handleNavigateToMedia}>
-            <div className="feature-icon media-icon"></div>
-            <h3>Digital Media</h3>
-            <p>Access our collection of music, movies, and more</p>
-          </div>
-          
-          <div className="feature-card scroll-animate from-right delay-300" onClick={handleNavigateToRooms}>
-            <div className="feature-icon room-icon"></div>
-            <h3>Study Spaces</h3>
-            <p>Reserve private rooms and collaborative spaces</p>
-          </div>
-          
-          <div className="feature-card scroll-animate from-bottom delay-400" onClick={handleNavigateToEvents}>
-            <div className="feature-icon event-icon"></div>
-            <h3>Events & Workshops</h3>
-            <p>Join our community events and learning sessions</p>
+          <div className="features-grid">
+            <div className="feature-card">
+              <div className="feature-icon">🎯</div>
+              <h3>Smart Matching</h3>
+              <p>Our system matches you with opportunities based on your skills, location, and availability.</p>
+            </div>
+            
+            <div className="feature-card">
+              <div className="feature-icon">⏰</div>
+              <h3>Flexible Scheduling</h3>
+              <p>Find volunteer opportunities that fit your schedule with our easy-to-use calendar system.</p>
+            </div>
+            
+            <div className="feature-card">
+              <div className="feature-icon">📈</div>
+              <h3>Track Your Impact</h3>
+              <p>Monitor your volunteer hours and see the difference you're making in your community.</p>
+            </div>
+            
+            <div className="feature-card">
+              <div className="feature-icon">🤝</div>
+              <h3>Community Network</h3>
+              <p>Connect with like-minded individuals and organizations working toward common goals.</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Promotional Section */}
-      <section className="promo-section sticky-section">
-        <div className="promo-content">
-          <h2 className="scroll-animate fade-in">Discover Something New</h2>
-          <p className="scroll-animate fade-in delay-200">Our curated collections are updated regularly with the latest publications</p>
-          <button 
-            onClick={handleNavigateToBooks} 
-            className="promo-button scroll-animate scale-in delay-400"
-          >
-            Start Browsing
-          </button>
+      {/* How It Works Section */}
+      <section className="how-it-works">
+        <div className="container">
+          <h2>How It Works</h2>
+          
+          <div className="steps-grid">
+            <div className="step">
+              <div className="step-number">1</div>
+              <h3>Create Your Profile</h3>
+              <p>Sign up and complete your volunteer profile with your skills, interests, and availability.</p>
+            </div>
+            
+            <div className="step">
+              <div className="step-number">2</div>
+              <h3>Discover Opportunities</h3>
+              <p>Browse volunteer events and opportunities that match your profile and preferences.</p>
+            </div>
+            
+            <div className="step">
+              <div className="step-number">3</div>
+              <h3>Get Matched</h3>
+              <p>Receive notifications when you're matched to suitable volunteer opportunities.</p>
+            </div>
+            
+            <div className="step">
+              <div className="step-number">4</div>
+              <h3>Make an Impact</h3>
+              <p>Volunteer at events and track your contribution to the community.</p>
+            </div>
+          </div>
         </div>
-        <div className="promo-image scroll-animate from-right"></div>
       </section>
 
-      {/* Quick Info Section */}
-      <section className="info-section">
-        <div className="info-card scroll-animate from-left">
-          <h3>Opening Hours</h3>
-          <p>Monday - Friday: 8:00 AM - 10:00 PM</p>
-          <p>Saturday - Sunday: 10:00 AM - 8:00 PM</p>
+      {/* Statistics Section */}
+      <section className="stats-section">
+        <div className="container">
+          <div className="stats-grid">
+            <div className="stat">
+              <div className="stat-number">1,200+</div>
+              <div className="stat-label">Active Volunteers</div>
+            </div>
+            <div className="stat">
+              <div className="stat-number">350+</div>
+              <div className="stat-label">Events Completed</div>
+            </div>
+            <div className="stat">
+              <div className="stat-number">15,000+</div>
+              <div className="stat-label">Hours Volunteered</div>
+            </div>
+            <div className="stat">
+              <div className="stat-number">95%</div>
+              <div className="stat-label">Satisfaction Rate</div>
+            </div>
+          </div>
         </div>
-        
-        <div className="info-card scroll-animate from-bottom delay-200">
-          <h3>Contact Us</h3>
-          <p>Email: library@university.edu</p>
-          <p>Phone: (555) 123-4567</p>
-        </div>
-        
-        <div className="info-card scroll-animate from-right delay-300">
-          <h3>Location</h3>
-          <p>Main Campus, Building C</p>
-          <p>123 University Avenue</p>
+      </section>
+
+      {/* CTA Section */}
+      <section className="cta-section">
+        <div className="container">
+          <h2>Ready to Start Volunteering?</h2>
+          <p>Join thousands of volunteers making a difference in their communities.</p>
+          
+          <div className="cta-buttons">
+            <button onClick={handleNavigateToRegister} className="cta-button primary large">
+              Join as Volunteer
+            </button>
+            <button onClick={handleNavigateToRegister} className="cta-button secondary large">
+              Register as Organization
+            </button>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="landing-footer">
-        <p>© 2025 BookFinder - University Library Portal</p>
+        <div className="container">
+          <div className="footer-content">
+            <div className="footer-section">
+              <h4>VolunteerConnect</h4>
+              <p>Connecting volunteers with meaningful opportunities since 2024.</p>
+            </div>
+            
+            <div className="footer-section">
+              <h4>For Volunteers</h4>
+              <ul>
+                <li><a href="#" onClick={handleNavigateToRegister}>Sign Up</a></li>
+                <li><a href="#" onClick={handleNavigateToLogin}>Login</a></li>
+              </ul>
+            </div>
+            
+            <div className="footer-section">
+              <h4>For Organizations</h4>
+              <ul>
+                <li><a href="#" onClick={handleNavigateToRegister}>Create Account</a></li>
+                <li><a href="#" onClick={handleNavigateToLogin}>Admin Portal</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="footer-bottom">
+            <p>&copy; 2024 VolunteerConnect. All rights reserved.</p>
+          </div>
+        </div>
       </footer>
     </div>
   );

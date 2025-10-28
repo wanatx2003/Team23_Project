@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 
-// Import components
+// Import volunteer management components
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import Home from "./components/home/Home";
 import UserProfile from "./components/profile/UserProfile";
 import EventManagement from "./components/events/EventManagement";
+import EventList from "./components/events/EventList";
 import VolunteerMatching from "./components/matching/VolunteerMatching";
 import VolunteerHistory from "./components/history/VolunteerHistory";
 import Notifications from "./components/notifications/Notifications";
@@ -28,13 +29,11 @@ function App() {
         const userData = JSON.parse(storedUser);
         setUserData(userData);
         setIsLoggedIn(true);
+        setCurrentScreen("home");
       } catch (e) {
         console.error("Error parsing stored user data:", e);
         sessionStorage.removeItem("user");
       }
-    } else {
-      setUserData(null);
-      setIsLoggedIn(false);
     }
   }, []);
 
@@ -63,6 +62,22 @@ function App() {
     setIsLoggedIn(false);
     setUserData(null);
     setCurrentScreen("landing");
+  };
+
+  // Register handler
+  const handleRegister = async (userData) => {
+    try {
+      const data = await API.register(userData);
+      if (data.success) {
+        alert("Registration successful! Please log in to complete your profile.");
+        setCurrentScreen("login");
+      } else {
+        alert("Failed to register: " + data.error);
+      }
+    } catch (error) {
+      console.error("Error registering user:", error);
+      alert("An error occurred while registering.");
+    }
   };
 
   // Navigation functions
@@ -116,22 +131,6 @@ function App() {
     setCurrentScreen("notifications");
   };
 
-  // Register handler
-  const handleRegister = async (userData) => {
-    try {
-      const data = await API.register(userData);
-      if (data.success) {
-        alert("Registration successful! Please log in to complete your profile.");
-        setCurrentScreen("login");
-      } else {
-        alert("Failed to register: " + data.error);
-      }
-    } catch (error) {
-      console.error("Error registering user:", error);
-      alert("An error occurred while registering.");
-    }
-  };
-
   return (
     <div className="app-container">
       {/* Show TopBar on all screens except landing */}
@@ -142,6 +141,11 @@ function App() {
           handleLogout={handleLogout}
           navigateToHome={navigateToHome}
           navigateToProfile={navigateToProfile}
+          navigateToEvents={navigateToEvents}
+          navigateToEventManagement={navigateToEventManagement}
+          navigateToMatching={navigateToMatching}
+          navigateToHistory={navigateToHistory}
+          navigateToNotifications={navigateToNotifications}
           navigateToLogin={navigateToLogin}
           navigateToRegister={navigateToRegister}
           navigateToLanding={navigateToLanding}
@@ -181,6 +185,13 @@ function App() {
 
       {currentScreen === "profile" && (
         <UserProfile
+          userData={userData}
+          navigateToHome={navigateToHome}
+        />
+      )}
+
+      {currentScreen === "events" && (
+        <EventList
           userData={userData}
           navigateToHome={navigateToHome}
         />

@@ -36,26 +36,55 @@ const login = async (req, res) => {
 // Register route handler
 const register = async (req, res) => {
   try {
-    const { Username, Password, FirstName, LastName, Email, PhoneNumber, Role } = await parseRequestBody(req);
-    console.log('Registration attempt for:', Email);
+    const { firstName, lastName, email, password, phoneNumber, role } = await parseRequestBody(req);
+    console.log('Registration attempt for:', email);
     
-    const query = `
-      INSERT INTO UserCredentials (Username, Password, FirstName, LastName, Email, PhoneNumber, Role, AccountCreatedAt, AccountStatus)
-      VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), 'Active')
-    `;
-
+    // Check if user already exists
     pool.query(
-      query,
-      [Username, Password, FirstName, LastName, Email, PhoneNumber, Role || 'volunteer'],
+      'SELECT UserID FROM UserCredentials WHERE Email = ?',
+      [email],
       (err, results) => {
         if (err) {
-          console.error('Error registering user:', err);
-          sendJsonResponse(res, 500, { success: false, error: 'Failed to register user' });
+          console.error('Error checking existing user:', err);
+          sendJsonResponse(res, 500, { success: false, error: 'Database error' });
           return;
         }
+        
+        if (results.length > 0) {
+          sendJsonResponse(res, 400, { success: false, error: 'User with this email already exists' });
+          return;
+        }
+        
+        // Insert new user (using email as username)
+        const query = `
+          INSERT INTO UserCredentials (Username, Password, FirstName, LastName, Email, PhoneNumber, Role, AccountCreatedAt, AccountStatus)
+          VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), 'Active')
+        `;
 
-        console.log('User registered successfully:', Email);
-        sendJsonResponse(res, 200, { success: true, userID: results.insertId });
+        pool.query(
+          query,
+          [email, password, firstName, lastName, email, phoneNumber || null, role || 'volunteer'],
+          (err, results) => {
+            if (err) {
+              console.error('Error registering user:', err);
+              sendJsonResponse(res, 500, { success: false, error: 'Failed to register user' });
+              return;
+            }
+
+            console.log('User registered successfully:', email);
+            
+            // Return user data for immediate login
+            const newUser = {
+              UserID: results.insertId,
+              FirstName: firstName,
+              LastName: lastName,
+              Email: email,
+              Role: role || 'volunteer'
+            };
+            
+            sendJsonResponse(res, 200, { success: true, user: newUser });
+          }
+        );
       }
     );
   } catch (error) {

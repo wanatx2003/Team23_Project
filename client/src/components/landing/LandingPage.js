@@ -206,16 +206,15 @@ const LandingPage = ({
         
         <div className="info-card scroll-animate from-bottom delay-200">
           <h3>Contact Us</h3>
-          <p>Email: support@volunteerconnect.org</p>
+          <p>Email: volunteer@university.edu</p>
           <p>Phone: (555) VOLUNTEER</p>
           <p>Emergency Line: (555) 911-HELP</p>
         </div>
         
         <div className="info-card scroll-animate from-right delay-300">
-          <h3>Community Center</h3>
-          <p>Downtown Community Hub</p>
-          <p>456 Volunteer Avenue</p>
-          <p>Community District, CD 12345</p>
+          <h3>Location</h3>
+          <p>Main Campus, Building C</p>
+          <p>123 University Avenue</p>
         </div>
       </section>
 
@@ -235,7 +234,7 @@ const LandingPage = ({
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© 2024 VolunteerConnect - Community Volunteer Management Platform</p>
+          <p>© 2025 VolunteerConnect - Community Volunteer Management Platform</p>
         </div>
       </footer>
     </div>

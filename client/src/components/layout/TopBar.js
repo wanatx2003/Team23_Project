@@ -69,37 +69,42 @@ const TopBar = ({
         </div>
         
         <div className="nav-buttons">
-          <button 
-            onClick={navigateToHistory} 
-            className="nav-button"
-            onMouseEnter={() => setHoveredButton('history')}
-            onMouseLeave={() => setHoveredButton(null)}
-            style={hoveredButton === 'history' ? glowEffect : {}}
-          >
-            My History
-          </button>
-
-          {isAdmin && (
+          {/* Only show navigation buttons if user is logged in */}
+          {isLoggedIn && userData && (
             <>
               <button 
-                onClick={navigateToEventManagement} 
-                className="nav-button admin-button"
-                onMouseEnter={() => setHoveredButton('manage')}
+                onClick={navigateToHistory} 
+                className="nav-button"
+                onMouseEnter={() => setHoveredButton('history')}
                 onMouseLeave={() => setHoveredButton(null)}
-                style={hoveredButton === 'manage' ? glowEffect : {}}
+                style={hoveredButton === 'history' ? glowEffect : {}}
               >
-                Manage Events
+                My History
               </button>
 
-              <button 
-                onClick={navigateToMatching} 
-                className="nav-button admin-button"
-                onMouseEnter={() => setHoveredButton('matching')}
-                onMouseLeave={() => setHoveredButton(null)}
-                style={hoveredButton === 'matching' ? glowEffect : {}}
-              >
-                Match Volunteers
-              </button>
+              {isAdmin && (
+                <>
+                  <button 
+                    onClick={navigateToEventManagement} 
+                    className="nav-button admin-button"
+                    onMouseEnter={() => setHoveredButton('manage')}
+                    onMouseLeave={() => setHoveredButton(null)}
+                    style={hoveredButton === 'manage' ? glowEffect : {}}
+                  >
+                    Manage Events
+                  </button>
+
+                  <button 
+                    onClick={navigateToMatching} 
+                    className="nav-button admin-button"
+                    onMouseEnter={() => setHoveredButton('matching')}
+                    onMouseLeave={() => setHoveredButton(null)}
+                    style={hoveredButton === 'matching' ? glowEffect : {}}
+                  >
+                    Match Volunteers
+                  </button>
+                </>
+              )}
             </>
           )}
           
@@ -146,7 +151,7 @@ const TopBar = ({
           ) : (
             <div className="auth-buttons">
               <button className="login-button" onClick={navigateToLogin}>
-                Login
+                LOGIN
               </button>
               <button className="register-button" onClick={navigateToRegister}>
                 Register

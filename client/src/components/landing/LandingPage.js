@@ -23,6 +23,45 @@ const LandingPage = ({
         from { transform: translateY(30px); opacity: 0; }
         to { transform: translateY(0); opacity: 1; }
       }
+
+      @keyframes slideInLeft {
+        from { transform: translateX(-50px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+
+      @keyframes slideInRight {
+        from { transform: translateX(50px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+
+      .scroll-animate {
+        opacity: 0;
+        transition: all 0.6s ease-out;
+      }
+
+      .scroll-animate.is-visible {
+        opacity: 1;
+      }
+
+      .from-left.is-visible {
+        animation: slideInLeft 0.6s ease-out forwards;
+      }
+
+      .from-right.is-visible {
+        animation: slideInRight 0.6s ease-out forwards;
+      }
+
+      .from-bottom.is-visible {
+        animation: slideUp 0.6s ease-out forwards;
+      }
+
+      .delay-200 {
+        animation-delay: 0.2s;
+      }
+
+      .delay-300 {
+        animation-delay: 0.3s;
+      }
     `;
     document.head.appendChild(style);
     
@@ -33,8 +72,6 @@ const LandingPage = ({
           // Add 'is-visible' class when element is in view
           if (entry.isIntersecting) {
             entry.target.classList.add('is-visible');
-            // Once the animation is done, we can stop observing
-            // observer.unobserve(entry.target);
           } else {
             // Optional: Remove the class when out of view for re-animation when scrolling back up
             entry.target.classList.remove('is-visible');
@@ -98,25 +135,25 @@ const LandingPage = ({
           <h2>Why Choose VolunteerConnect?</h2>
           
           <div className="features-grid">
-            <div className="feature-card">
+            <div className="feature-card scroll-animate from-left">
               <div className="feature-icon">🎯</div>
               <h3>Smart Matching</h3>
               <p>Our system matches you with opportunities based on your skills, location, and availability.</p>
             </div>
             
-            <div className="feature-card">
+            <div className="feature-card scroll-animate from-bottom delay-200">
               <div className="feature-icon">⏰</div>
               <h3>Flexible Scheduling</h3>
               <p>Find volunteer opportunities that fit your schedule with our easy-to-use calendar system.</p>
             </div>
             
-            <div className="feature-card">
+            <div className="feature-card scroll-animate from-right delay-300">
               <div className="feature-icon">📈</div>
               <h3>Track Your Impact</h3>
               <p>Monitor your volunteer hours and see the difference you're making in your community.</p>
             </div>
             
-            <div className="feature-card">
+            <div className="feature-card scroll-animate from-bottom">
               <div className="feature-icon">🤝</div>
               <h3>Community Network</h3>
               <p>Connect with like-minded individuals and organizations working toward common goals.</p>
@@ -131,25 +168,25 @@ const LandingPage = ({
           <h2>How It Works</h2>
           
           <div className="steps-grid">
-            <div className="step">
+            <div className="step scroll-animate from-left">
               <div className="step-number">1</div>
               <h3>Create Your Profile</h3>
               <p>Sign up and complete your volunteer profile with your skills, interests, and availability.</p>
             </div>
             
-            <div className="step">
+            <div className="step scroll-animate from-bottom delay-200">
               <div className="step-number">2</div>
               <h3>Discover Opportunities</h3>
               <p>Browse volunteer events and opportunities that match your profile and preferences.</p>
             </div>
             
-            <div className="step">
+            <div className="step scroll-animate from-right delay-300">
               <div className="step-number">3</div>
               <h3>Get Matched</h3>
               <p>Receive notifications when you're matched to suitable volunteer opportunities.</p>
             </div>
             
-            <div className="step">
+            <div className="step scroll-animate from-bottom">
               <div className="step-number">4</div>
               <h3>Make an Impact</h3>
               <p>Volunteer at events and track your contribution to the community.</p>
@@ -157,6 +194,50 @@ const LandingPage = ({
           </div>
         </div>
       </section>
+
+      {/* Quick Info Section */}
+      <section className="info-section">
+        <div className="info-card scroll-animate from-left">
+          <h3>Platform Hours</h3>
+          <p>Monday - Friday: 6:00 AM - 11:00 PM</p>
+          <p>Saturday - Sunday: 8:00 AM - 10:00 PM</p>
+          <p>24/7 online access available</p>
+        </div>
+        
+        <div className="info-card scroll-animate from-bottom delay-200">
+          <h3>Contact Us</h3>
+          <p>Email: support@volunteerconnect.org</p>
+          <p>Phone: (555) VOLUNTEER</p>
+          <p>Emergency Line: (555) 911-HELP</p>
+        </div>
+        
+        <div className="info-card scroll-animate from-right delay-300">
+          <h3>Community Center</h3>
+          <p>Downtown Community Hub</p>
+          <p>456 Volunteer Avenue</p>
+          <p>Community District, CD 12345</p>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="landing-footer">
+        <div className="footer-content">
+          <div className="footer-section">
+            <h4>VolunteerConnect</h4>
+            <p>Making volunteering accessible and meaningful for everyone.</p>
+          </div>
+          <div className="footer-section">
+            <h4>Quick Links</h4>
+            <ul>
+              <li><button onClick={handleNavigateToRegister}>Sign Up</button></li>
+              <li><button onClick={handleNavigateToLogin}>Login</button></li>
+            </ul>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <p>© 2024 VolunteerConnect - Community Volunteer Management Platform</p>
+        </div>
+      </footer>
     </div>
   );
 };

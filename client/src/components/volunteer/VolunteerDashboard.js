@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../../styles/volunteer/VolunteerDashboard.css';
 
-const VolunteerDashboard = ({ userData, onNavigateToProfile, onNavigateToEvents }) => {
+const VolunteerDashboard = ({ userData, onNavigateToProfile, onNavigateToEvents, onNavigateToHistory, onNavigateToNotifications }) => {
   const [stats, setStats] = useState({
     upcomingEvents: 0,
     completedEvents: 0,
@@ -80,60 +80,12 @@ const VolunteerDashboard = ({ userData, onNavigateToProfile, onNavigateToEvents 
     }
   };
 
-  const handleVolunteerRequest = async (eventId) => {
-    try {
-      const response = await fetch('/api/volunteer/request', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          VolunteerID: userData.UserID,
-          EventID: eventId
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        // Refresh dashboard data
-        fetchDashboardData();
-      } else {
-        alert(data.error || 'Failed to send volunteer request');
-      }
-    } catch (error) {
-      alert('Network error. Please try again.');
-    }
-  };
-
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
-  };
-
-  const getMatchScore = (event) => {
-    if (!userSkills.length || !event.RequiredSkills) return 0;
-    
-    const matchingSkills = event.RequiredSkills.filter(skill => 
-      userSkills.includes(skill)
-    );
-    
-    return Math.round((matchingSkills.length / event.RequiredSkills.length) * 100);
-  };
-
-  const isDateAvailable = (eventDate) => {
-    if (!userAvailability.length) return false;
-    
-    const eventDay = new Date(eventDate).toLocaleDateString('en-US', { weekday: 'short' });
-    const dayMap = {
-      'Sun': 'Sun', 'Mon': 'Mon', 'Tue': 'Tue', 'Wed': 'Wed',
-      'Thu': 'Thu', 'Fri': 'Fri', 'Sat': 'Sat'
-    };
-    
-    return userAvailability.some(avail => avail.DayOfWeek === dayMap[eventDay]);
   };
 
   const getUrgencyClass = (urgency) => {
@@ -203,6 +155,54 @@ const VolunteerDashboard = ({ userData, onNavigateToProfile, onNavigateToEvents 
         </div>
       </div>
 
+      {/* Navigation Cards Section */}
+      <div className="dashboard-section">
+        <h2>Quick Actions</h2>
+        <div className="navigation-cards">
+          <div className="nav-card" onClick={onNavigateToEvents}>
+            <div className="nav-card-icon">🎯</div>
+            <div className="nav-card-content">
+              <h3>Browse Events</h3>
+              <p>Find and join volunteer opportunities</p>
+              <span className="nav-card-count">{availableEvents.length} available</span>
+            </div>
+            <div className="nav-card-arrow">→</div>
+          </div>
+
+          <div className="nav-card" onClick={onNavigateToProfile}>
+            <div className="nav-card-icon">👤</div>
+            <div className="nav-card-content">
+              <h3>My Profile</h3>
+              <p>Update your skills and availability</p>
+              <span className={`nav-card-status ${profileComplete ? 'complete' : 'incomplete'}`}>
+                {profileComplete ? 'Complete' : 'Incomplete'}
+              </span>
+            </div>
+            <div className="nav-card-arrow">→</div>
+          </div>
+
+          <div className="nav-card" onClick={onNavigateToHistory}>
+            <div className="nav-card-icon">📋</div>
+            <div className="nav-card-content">
+              <h3>My History</h3>
+              <p>View your volunteer participation</p>
+              <span className="nav-card-count">{stats.completedEvents} completed</span>
+            </div>
+            <div className="nav-card-arrow">→</div>
+          </div>
+
+          <div className="nav-card" onClick={onNavigateToNotifications}>
+            <div className="nav-card-icon">🔔</div>
+            <div className="nav-card-content">
+              <h3>Notifications</h3>
+              <p>Check your messages and updates</p>
+              <span className="nav-card-count">{stats.unreadNotifications} unread</span>
+            </div>
+            <div className="nav-card-arrow">→</div>
+          </div>
+        </div>
+      </div>
+
       <div className="dashboard-content">
         <div className="dashboard-section">
           <div className="section-header">
@@ -234,87 +234,9 @@ const VolunteerDashboard = ({ userData, onNavigateToProfile, onNavigateToEvents 
             </div>
           ) : (
             <div className="no-events">
-              <p>No upcoming events. Browse available events below to get started!</p>
-            </div>
-          )}
-        </div>
-
-        <div className="dashboard-section">
-          <div className="section-header">
-            <h2>Recommended Events for You</h2>
-            <button onClick={onNavigateToEvents} className="view-all-btn">
-              View All Events
-            </button>
-          </div>
-          {availableEvents.length > 0 ? (
-            <div className="events-list">
-              {availableEvents.slice(0, 3).map(event => {
-                const matchScore = getMatchScore(event);
-                const dateAvailable = isDateAvailable(event.EventDate);
-                
-                return (
-                  <div key={event.EventID} className="event-card available">
-                    <div className="event-header">
-                      <h3>{event.EventName}</h3>
-                      <span className={`urgency-badge ${getUrgencyClass(event.Urgency)}`}>
-                        {event.Urgency}
-                      </span>
-                    </div>
-                    <p className="event-date">📅 {formatDate(event.EventDate)}</p>
-                    <p className="event-location">📍 {event.Location}</p>
-                    <p className="event-description">{event.Description}</p>
-                    
-                    <div className="event-matching">
-                      <div className="match-indicators">
-                        <div className={`match-indicator ${matchScore >= 50 ? 'good' : 'poor'}`}>
-                          <span className="indicator-label">Skill Match:</span>
-                          <span className="indicator-value">{matchScore}%</span>
-                        </div>
-                        <div className={`match-indicator ${dateAvailable ? 'good' : 'poor'}`}>
-                          <span className="indicator-label">Available:</span>
-                          <span className="indicator-value">{dateAvailable ? 'Yes' : 'No'}</span>
-                        </div>
-                      </div>
-                      
-                      {event.RequiredSkills && (
-                        <div className="skills-match">
-                          <span className="skills-label">Required Skills:</span>
-                          <div className="skills-list">
-                            {event.RequiredSkills.map(skill => (
-                              <span 
-                                key={skill} 
-                                className={`skill-tag ${userSkills.includes(skill) ? 'matched' : 'unmatched'}`}
-                              >
-                                {skill}
-                                {userSkills.includes(skill) && ' ✓'}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="event-actions">
-                      <button 
-                        onClick={() => handleVolunteerRequest(event.EventID)}
-                        className="volunteer-btn"
-                        disabled={event.MaxVolunteers && event.CurrentVolunteers >= event.MaxVolunteers}
-                      >
-                        {event.MaxVolunteers && event.CurrentVolunteers >= event.MaxVolunteers 
-                          ? 'Event Full' 
-                          : 'Request to Volunteer'
-                        }
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="no-events">
-              <p>No events available at the moment. Check back later for new opportunities!</p>
-              <button onClick={onNavigateToEvents} className="view-all-btn">
-                Browse All Events
+              <p>No upcoming events. Browse available events to get started!</p>
+              <button onClick={onNavigateToEvents} className="browse-events-btn">
+                Browse Events
               </button>
             </div>
           )}

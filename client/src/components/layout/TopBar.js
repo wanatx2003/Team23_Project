@@ -13,7 +13,8 @@ const TopBar = ({
   navigateToLogin,
   navigateToRegister,
   navigateToLanding,
-  navigateToHome
+  navigateToHome,
+  navigateToEvents
 }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isLogoHovered, setIsLogoHovered] = useState(false);
@@ -74,7 +75,7 @@ const TopBar = ({
             <>
               {!isAdmin && (
                 <button 
-                  onClick={() => window.location.href = '#events'} 
+                  onClick={navigateToEvents} 
                   className="nav-button"
                   onMouseEnter={() => setHoveredButton('events')}
                   onMouseLeave={() => setHoveredButton(null)}

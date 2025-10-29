@@ -108,6 +108,8 @@ function App() {
             userData={userData}
             onNavigateToProfile={() => setCurrentPage("profile")}
             onNavigateToEvents={() => setCurrentPage("events")}
+            onNavigateToHistory={() => setCurrentPage("history")}
+            onNavigateToNotifications={() => setCurrentPage("notifications")}
           />
         );
       case "profile":
@@ -147,6 +149,7 @@ function App() {
         navigateToRegister={() => setCurrentPage("register")}
         navigateToLanding={() => setCurrentPage("landing")}
         navigateToHome={() => setCurrentPage("dashboard")}
+        navigateToEvents={() => setCurrentPage("events")}
       />
 
       <div className={isLoggedIn ? "content-container" : ""}>

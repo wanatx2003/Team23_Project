@@ -220,11 +220,104 @@ const createVolunteerMatch = async (req, res) => {
   }
 };
 
+// Get available events for volunteers (published events only)
+const getAvailableEvents = (req, res) => {
+  const query = `
+    SELECT 
+      ed.EventID, ed.EventName, ed.Description, ed.Location, ed.Urgency,
+      ed.EventDate, ed.EventTime, ed.MaxVolunteers, ed.CurrentVolunteers,
+      ed.EventStatus, ed.CreatedAt,
+      uc.FirstName as CreatedByName,
+      GROUP_CONCAT(ers.SkillName) as RequiredSkills
+    FROM EventDetails ed
+    LEFT JOIN UserCredentials uc ON ed.CreatedBy = uc.UserID
+    LEFT JOIN EventRequiredSkill ers ON ed.EventID = ers.EventID
+    WHERE ed.EventStatus = 'published' AND ed.EventDate >= CURDATE()
+    GROUP BY ed.EventID
+    ORDER BY ed.EventDate ASC, ed.Urgency DESC
+  `;
+  
+  pool.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching available events:", err);
+      sendJsonResponse(res, 500, { success: false, error: "Internal server error" });
+      return;
+    }
+    
+    // Parse required skills into arrays
+    const events = results.map(event => ({
+      ...event,
+      RequiredSkills: event.RequiredSkills ? event.RequiredSkills.split(',') : []
+    }));
+    
+    sendJsonResponse(res, 200, { success: true, events });
+  });
+};
+
+// Create volunteer request
+const createVolunteerRequest = async (req, res) => {
+  try {
+    const data = await parseRequestBody(req);
+    const { VolunteerID, EventID } = data;
+    
+    // Check if volunteer already requested this event
+    pool.query(
+      'SELECT MatchID FROM VolunteerMatches WHERE VolunteerID = ? AND EventID = ?',
+      [VolunteerID, EventID],
+      (err, existing) => {
+        if (err) {
+          console.error("Error checking existing match:", err);
+          sendJsonResponse(res, 500, { success: false, error: "Internal server error" });
+          return;
+        }
+        
+        if (existing.length > 0) {
+          sendJsonResponse(res, 400, { success: false, error: "You have already requested to volunteer for this event" });
+          return;
+        }
+        
+        // Create the volunteer match
+        const query = 'INSERT INTO VolunteerMatches (VolunteerID, EventID, MatchStatus) VALUES (?, ?, "pending")';
+        
+        pool.query(query, [VolunteerID, EventID], (err, result) => {
+          if (err) {
+            console.error("Error creating volunteer request:", err);
+            sendJsonResponse(res, 500, { success: false, error: "Failed to create volunteer request" });
+            return;
+          }
+          
+          // Create notification for admin
+          const notificationQuery = `
+            INSERT INTO Notifications (UserID, Subject, Message, NotificationType)
+            SELECT uc.UserID, 'New Volunteer Request', 
+            CONCAT('A volunteer has requested to join event: ', ed.EventName), 'assignment'
+            FROM UserCredentials uc, EventDetails ed
+            WHERE uc.Role = 'admin' AND ed.EventID = ?
+          `;
+          
+          pool.query(notificationQuery, [EventID], (notifErr) => {
+            if (notifErr) {
+              console.error("Error creating notification:", notifErr);
+            }
+          });
+          
+          sendJsonResponse(res, 200, { success: true, message: "Volunteer request sent successfully" });
+        });
+      }
+    );
+  } catch (error) {
+    console.error('Error in createVolunteerRequest:', error);
+    sendJsonResponse(res, 500, { success: false, error: "Server error" });
+  }
+};
+
 module.exports = {
   getAllEvents,
   createEvent,
   updateEvent,
   deleteEvent,
   getVolunteerMatches,
-  createVolunteerMatch
+  createVolunteerMatch,
+  getAvailableEvents,
+  createVolunteerRequest
 };

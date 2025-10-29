@@ -49,6 +49,8 @@ const server = http.createServer((req, res) => {
   // Event routes
   else if (requestUrl === '/api/events' && method === 'GET') {
     eventRoutes.getAllEvents(req, res);
+  } else if (requestUrl === '/api/events/available' && method === 'GET') {
+    eventRoutes.getAvailableEvents(req, res);
   } else if (requestUrl === '/api/events' && method === 'POST') {
     eventRoutes.createEvent(req, res);
   } else if (requestUrl === '/api/events' && method === 'PUT') {
@@ -59,14 +61,18 @@ const server = http.createServer((req, res) => {
   } else if (requestUrl.startsWith('/api/events/') && method === 'DELETE') {
     const eventId = requestUrl.split('/')[3];
     eventRoutes.deleteEvent(req, res, eventId);
-  } 
+  } else if (requestUrl.startsWith('/api/events/available-with-matching/') && method === 'GET') {
+    const userId = requestUrl.split('/').pop();
+    const volunteerRoutes = require('./routes/volunteerRoutes');
+    volunteerRoutes.getAvailableEventsWithMatching(req, res, userId);
+  }
   
   // Volunteer routes
-  else if (requestUrl === '/api/volunteer/profiles' && method === 'GET') {
+  else if (requestUrl === '/api/volunteer/request' && method === 'POST') {
+    eventRoutes.createVolunteerRequest(req, res);
+  } else if (requestUrl === '/api/volunteer/profiles' && method === 'GET') {
     const volunteerRoutes = require('./routes/volunteerRoutes');
     volunteerRoutes.getAllVolunteerProfiles(req, res);
-  } else if (requestUrl === '/api/volunteer/match' && method === 'POST') {
-    eventRoutes.createVolunteerMatch(req, res);
   } else if (requestUrl.startsWith('/api/volunteer/match/') && method === 'PUT') {
     const matchId = requestUrl.split('/')[4];
     const volunteerRoutes = require('./routes/volunteerRoutes');
@@ -75,14 +81,14 @@ const server = http.createServer((req, res) => {
     const userId = requestUrl.split('/').pop();
     const volunteerRoutes = require('./routes/volunteerRoutes');
     volunteerRoutes.getVolunteerStats(req, res, userId);
-  } else if (requestUrl.startsWith('/api/volunteer/events/recent/') && method === 'GET') {
+  } else if (requestUrl.startsWith('/api/volunteer/matched-events/') && method === 'GET') {
     const userId = requestUrl.split('/').pop();
     const volunteerRoutes = require('./routes/volunteerRoutes');
-    volunteerRoutes.getRecentEvents(req, res, userId);
-  } else if (requestUrl.startsWith('/api/volunteer/events/upcoming/') && method === 'GET') {
+    volunteerRoutes.getMatchedEvents(req, res, userId);
+  } else if (requestUrl.startsWith('/api/events/available-with-matching/') && method === 'GET') {
     const userId = requestUrl.split('/').pop();
     const volunteerRoutes = require('./routes/volunteerRoutes');
-    volunteerRoutes.getUpcomingEvents(req, res, userId);
+    volunteerRoutes.getAvailableEventsWithMatching(req, res, userId);
   } 
   
   // Notification routes

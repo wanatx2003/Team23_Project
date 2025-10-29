@@ -72,6 +72,18 @@ const TopBar = ({
           {/* Only show navigation buttons if user is logged in */}
           {isLoggedIn && userData && (
             <>
+              {!isAdmin && (
+                <button 
+                  onClick={() => window.location.href = '#events'} 
+                  className="nav-button"
+                  onMouseEnter={() => setHoveredButton('events')}
+                  onMouseLeave={() => setHoveredButton(null)}
+                  style={hoveredButton === 'events' ? glowEffect : {}}
+                >
+                  Browse Events
+                </button>
+              )}
+              
               <button 
                 onClick={navigateToHistory} 
                 className="nav-button"

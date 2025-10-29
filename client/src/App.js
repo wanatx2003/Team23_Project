@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
+import "./styles/variables.css";
 
 // Import volunteer management components
 import Login from "./components/auth/Login";
@@ -13,27 +14,25 @@ import VolunteerHistory from "./components/history/VolunteerHistory";
 import Notifications from "./components/notifications/Notifications";
 import TopBar from "./components/layout/TopBar";
 import LandingPage from "./components/landing/LandingPage";
+import VolunteerDashboard from "./components/volunteer/VolunteerDashboard";
+import EventsList from "./components/volunteer/EventsList";
 
 // Import API service
 import API from "./services/api";
 
 function App() {
+  const [currentPage, setCurrentPage] = useState("landing");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userData, setUserData] = useState(null);
-  const [currentScreen, setCurrentScreen] = useState("landing");
 
   useEffect(() => {
-    const storedUser = sessionStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        setUserData(userData);
-        setIsLoggedIn(true);
-        setCurrentScreen("home");
-      } catch (e) {
-        console.error("Error parsing stored user data:", e);
-        sessionStorage.removeItem("user");
-      }
+    // Check if user is already logged in (localStorage or sessionStorage)
+    const savedUser = localStorage.getItem("volunteerUser");
+    if (savedUser) {
+      const user = JSON.parse(savedUser);
+      setUserData(user);
+      setIsLoggedIn(true);
+      setCurrentPage("dashboard");
     }
   }, []);
 
@@ -43,10 +42,10 @@ function App() {
       const data = await API.login(email, password);
 
       if (data.success) {
-        sessionStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("volunteerUser", JSON.stringify(data.user));
         setIsLoggedIn(true);
         setUserData(data.user);
-        setCurrentScreen("home");
+        setCurrentPage("dashboard");
       } else {
         alert(data.error || "Invalid email or password");
       }
@@ -58,10 +57,10 @@ function App() {
 
   // Logout handler
   const handleLogout = () => {
-    sessionStorage.removeItem("user");
-    setIsLoggedIn(false);
     setUserData(null);
-    setCurrentScreen("landing");
+    setIsLoggedIn(false);
+    localStorage.removeItem("volunteerUser");
+    setCurrentPage("landing");
   };
 
   // Register handler
@@ -70,7 +69,7 @@ function App() {
       const data = await API.register(userData);
       if (data.success) {
         alert("Registration successful! Please log in to complete your profile.");
-        setCurrentScreen("login");
+        setCurrentPage("login");
       } else {
         alert("Failed to register: " + data.error);
       }
@@ -80,149 +79,79 @@ function App() {
     }
   };
 
-  // Navigation functions
-  const navigateToHome = () => {
-    window.scrollTo(0, 0);
-    setCurrentScreen("home");
-  };
-  
-  const navigateToLogin = () => {
-    window.scrollTo(0, 0);
-    setCurrentScreen("login");
-  };
-  
-  const navigateToRegister = () => {
-    window.scrollTo(0, 0);
-    setCurrentScreen("register");
-  };
-  
-  const navigateToLanding = () => {
-    window.scrollTo(0, 0);
-    setCurrentScreen("landing");
-  };
-
-  const navigateToProfile = () => {
-    window.scrollTo(0, 0);
-    setCurrentScreen("profile");
-  };
-
-  const navigateToEvents = () => {
-    window.scrollTo(0, 0);
-    setCurrentScreen("events");
-  };
-
-  const navigateToEventManagement = () => {
-    window.scrollTo(0, 0);
-    setCurrentScreen("eventManagement");
-  };
-
-  const navigateToMatching = () => {
-    window.scrollTo(0, 0);
-    setCurrentScreen("matching");
-  };
-
-  const navigateToHistory = () => {
-    window.scrollTo(0, 0);
-    setCurrentScreen("history");
-  };
-
-  const navigateToNotifications = () => {
-    window.scrollTo(0, 0);
-    setCurrentScreen("notifications");
+  const renderCurrentPage = () => {
+    switch (currentPage) {
+      case "landing":
+        return (
+          <LandingPage
+            navigateToLogin={() => setCurrentPage("login")}
+            navigateToRegister={() => setCurrentPage("register")}
+          />
+        );
+      case "login":
+        return (
+          <Login
+            onLogin={handleLogin}
+            navigateToRegister={() => setCurrentPage("register")}
+          />
+        );
+      case "register":
+        return (
+          <Register
+            onRegister={handleRegister}
+            navigateToLogin={() => setCurrentPage("login")}
+          />
+        );
+      case "dashboard":
+        return (
+          <VolunteerDashboard
+            userData={userData}
+            onNavigateToProfile={() => setCurrentPage("profile")}
+            onNavigateToEvents={() => setCurrentPage("events")}
+          />
+        );
+      case "profile":
+        return <UserProfile userData={userData} />;
+      case "events":
+        return <EventsList userData={userData} />;
+      case "eventManagement":
+        return <EventManagement userData={userData} />;
+      case "matching":
+        return <VolunteerMatching />;
+      case "notifications":
+        return <Notifications userData={userData} />;
+      case "history":
+        return <VolunteerHistory userData={userData} />;
+      default:
+        return (
+          <LandingPage
+            navigateToLogin={() => setCurrentPage("login")}
+            navigateToRegister={() => setCurrentPage("register")}
+          />
+        );
+    }
   };
 
   return (
     <div className="app-container">
-      {/* Show TopBar on all screens except landing */}
-      {currentScreen !== "landing" && (
-        <TopBar
-          isLoggedIn={isLoggedIn}
-          userData={userData}
-          handleLogout={handleLogout}
-          navigateToHome={navigateToHome}
-          navigateToProfile={navigateToProfile}
-          navigateToEventManagement={navigateToEventManagement}
-          navigateToMatching={navigateToMatching}
-          navigateToHistory={navigateToHistory}
-          navigateToNotifications={navigateToNotifications}
-          navigateToLogin={navigateToLogin}
-          navigateToRegister={navigateToRegister}
-          navigateToLanding={navigateToLanding}
-        />
-      )}
+      <TopBar
+        isLoggedIn={isLoggedIn}
+        userData={userData}
+        handleLogout={handleLogout}
+        navigateToProfile={() => setCurrentPage("profile")}
+        navigateToEventManagement={() => setCurrentPage("eventManagement")}
+        navigateToMatching={() => setCurrentPage("matching")}
+        navigateToHistory={() => setCurrentPage("history")}
+        navigateToNotifications={() => setCurrentPage("notifications")}
+        navigateToLogin={() => setCurrentPage("login")}
+        navigateToRegister={() => setCurrentPage("register")}
+        navigateToLanding={() => setCurrentPage("landing")}
+        navigateToHome={() => setCurrentPage("dashboard")}
+      />
 
-      {/* Render the appropriate screen */}
-      {currentScreen === "landing" && (
-        <LandingPage
-          navigateToLogin={navigateToLogin}
-          navigateToRegister={navigateToRegister}
-        />
-      )}
-
-      {currentScreen === "login" && (
-        <Login onLogin={handleLogin} navigateToRegister={navigateToRegister} />
-      )}
-
-      {currentScreen === "register" && (
-        <Register
-          onRegister={handleRegister}
-          navigateToLogin={navigateToLogin}
-        />
-      )}
-
-      {currentScreen === "home" && (
-        <Home
-          userData={userData}
-          navigateToProfile={navigateToProfile}
-          navigateToEvents={navigateToEvents}
-          navigateToEventManagement={navigateToEventManagement}
-          navigateToMatching={navigateToMatching}
-          navigateToHistory={navigateToHistory}
-          navigateToNotifications={navigateToNotifications}
-        />
-      )}
-
-      {currentScreen === "profile" && (
-        <UserProfile
-          userData={userData}
-          navigateToHome={navigateToHome}
-        />
-      )}
-
-      {currentScreen === "events" && (
-        <EventList
-          userData={userData}
-          navigateToHome={navigateToHome}
-        />
-      )}
-
-      {currentScreen === "eventManagement" && userData?.Role === "admin" && (
-        <EventManagement
-          userData={userData}
-          navigateToHome={navigateToHome}
-        />
-      )}
-
-      {currentScreen === "matching" && userData?.Role === "admin" && (
-        <VolunteerMatching
-          userData={userData}
-          navigateToHome={navigateToHome}
-        />
-      )}
-
-      {currentScreen === "history" && (
-        <VolunteerHistory
-          userData={userData}
-          navigateToHome={navigateToHome}
-        />
-      )}
-
-      {currentScreen === "notifications" && (
-        <Notifications
-          userData={userData}
-          navigateToHome={navigateToHome}
-        />
-      )}
+      <div className={isLoggedIn ? "content-container" : ""}>
+        {renderCurrentPage()}
+      </div>
     </div>
   );
 }

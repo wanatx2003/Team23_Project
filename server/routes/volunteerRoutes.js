@@ -144,10 +144,73 @@ const getUpcomingEvents = (req, res, userId) => {
   });
 };
 
+// Get matched events for volunteer
+const getMatchedEvents = (req, res, userId) => {
+  const query = `
+    SELECT 
+      ed.EventID, ed.EventName, ed.Description, ed.Location, ed.EventDate, 
+      ed.EventTime, ed.Urgency, vm.MatchStatus, vm.RequestedAt
+    FROM VolunteerMatches vm
+    JOIN EventDetails ed ON vm.EventID = ed.EventID
+    WHERE vm.VolunteerID = ? AND vm.MatchStatus IN ('pending', 'confirmed') 
+    AND ed.EventDate >= CURDATE()
+    ORDER BY ed.EventDate ASC
+  `;
+  
+  pool.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error("Error fetching matched events:", err);
+      sendJsonResponse(res, 500, { success: false, error: "Internal server error" });
+      return;
+    }
+    
+    sendJsonResponse(res, 200, { success: true, events: results });
+  });
+};
+
+// Get available events with skill matching for specific volunteer
+const getAvailableEventsWithMatching = (req, res, userId) => {
+  const query = `
+    SELECT 
+      ed.EventID, ed.EventName, ed.Description, ed.Location, ed.Urgency,
+      ed.EventDate, ed.EventTime, ed.MaxVolunteers, ed.CurrentVolunteers,
+      GROUP_CONCAT(ers.SkillName) as RequiredSkills,
+      (SELECT COUNT(*) FROM VolunteerMatches vm WHERE vm.EventID = ed.EventID AND vm.VolunteerID = ?) as AlreadyRequested
+    FROM EventDetails ed
+    LEFT JOIN EventRequiredSkill ers ON ed.EventID = ers.EventID
+    WHERE ed.EventStatus = 'published' 
+    AND ed.EventDate >= CURDATE()
+    AND ed.EventID NOT IN (
+      SELECT vm2.EventID FROM VolunteerMatches vm2 WHERE vm2.VolunteerID = ?
+    )
+    GROUP BY ed.EventID
+    ORDER BY ed.EventDate ASC, ed.Urgency DESC
+    LIMIT 10
+  `;
+  
+  pool.query(query, [userId, userId], (err, results) => {
+    if (err) {
+      console.error("Error fetching available events with matching:", err);
+      sendJsonResponse(res, 500, { success: false, error: "Internal server error" });
+      return;
+    }
+    
+    // Parse required skills into arrays
+    const events = results.map(event => ({
+      ...event,
+      RequiredSkills: event.RequiredSkills ? event.RequiredSkills.split(',') : []
+    }));
+    
+    sendJsonResponse(res, 200, { success: true, events });
+  });
+};
+
 module.exports = {
   getAllVolunteerProfiles,
   updateMatchStatus,
   getVolunteerStats,
   getRecentEvents,
-  getUpcomingEvents
+  getUpcomingEvents,
+  getMatchedEvents,
+  getAvailableEventsWithMatching
 };

@@ -35,7 +35,68 @@ const server = http.createServer((req, res) => {
     userRoutes.getStates(req, res);
   } else if (requestUrl === '/api/user/skills' && method === 'GET') {
     userRoutes.getAvailableSkills(req, res);
-  } else {
+  } 
+  
+  // Auth routes
+  else if (requestUrl === '/api/auth/login' && method === 'POST') {
+    const authRoutes = require('./routes/authRoutes');
+    authRoutes.login(req, res);
+  } else if (requestUrl === '/api/auth/register' && method === 'POST') {
+    const authRoutes = require('./routes/authRoutes');
+    authRoutes.register(req, res);
+  }
+  
+  // Event routes
+  else if (requestUrl === '/api/events' && method === 'GET') {
+    eventRoutes.getAllEvents(req, res);
+  } else if (requestUrl === '/api/events' && method === 'POST') {
+    eventRoutes.createEvent(req, res);
+  } else if (requestUrl === '/api/events' && method === 'PUT') {
+    eventRoutes.updateEvent(req, res);
+  } else if (requestUrl.startsWith('/api/events/') && requestUrl.endsWith('/matches') && method === 'GET') {
+    const eventId = requestUrl.split('/')[3];
+    eventRoutes.getVolunteerMatches(req, res, eventId);
+  } else if (requestUrl.startsWith('/api/events/') && method === 'DELETE') {
+    const eventId = requestUrl.split('/')[3];
+    eventRoutes.deleteEvent(req, res, eventId);
+  } 
+  
+  // Volunteer routes
+  else if (requestUrl === '/api/volunteer/profiles' && method === 'GET') {
+    const volunteerRoutes = require('./routes/volunteerRoutes');
+    volunteerRoutes.getAllVolunteerProfiles(req, res);
+  } else if (requestUrl === '/api/volunteer/match' && method === 'POST') {
+    eventRoutes.createVolunteerMatch(req, res);
+  } else if (requestUrl.startsWith('/api/volunteer/match/') && method === 'PUT') {
+    const matchId = requestUrl.split('/')[4];
+    const volunteerRoutes = require('./routes/volunteerRoutes');
+    volunteerRoutes.updateMatchStatus(req, res, matchId);
+  } else if (requestUrl.startsWith('/api/volunteer/stats/') && method === 'GET') {
+    const userId = requestUrl.split('/').pop();
+    const volunteerRoutes = require('./routes/volunteerRoutes');
+    volunteerRoutes.getVolunteerStats(req, res, userId);
+  } else if (requestUrl.startsWith('/api/volunteer/events/recent/') && method === 'GET') {
+    const userId = requestUrl.split('/').pop();
+    const volunteerRoutes = require('./routes/volunteerRoutes');
+    volunteerRoutes.getRecentEvents(req, res, userId);
+  } else if (requestUrl.startsWith('/api/volunteer/events/upcoming/') && method === 'GET') {
+    const userId = requestUrl.split('/').pop();
+    const volunteerRoutes = require('./routes/volunteerRoutes');
+    volunteerRoutes.getUpcomingEvents(req, res, userId);
+  } 
+  
+  // Notification routes
+  else if (requestUrl === '/api/notifications' && method === 'POST') {
+    notificationRoutes.createNotification(req, res);
+  } else if (requestUrl.startsWith('/api/notifications/unread/') && method === 'GET') {
+    const userId = requestUrl.split('/').pop();
+    notificationRoutes.getUnreadCount(req, res, userId);
+  } else if (requestUrl.startsWith('/api/notifications/') && method === 'GET') {
+    const userId = requestUrl.split('/').pop();
+    notificationRoutes.getUserNotifications(req, res, userId);
+  }
+  
+  else {
     // Process the request with our main handler
     handleRequest(req, res);
   }

@@ -1,4 +1,7 @@
 {
+  "name": "team23-project",
+  "private": true,
+  "version": "1.0.0",
   "dependencies": {
     "chart.js": "^4.4.8",
     "dotenv": "^16.5.0",
@@ -6,5 +9,13 @@
     "mysql2": "^3.14.0",
     "nodemailer": "^6.10.0",
     "react-chartjs-2": "^5.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test:server": "npm --prefix server test",
+    "test:client": "npm --prefix client test -- --coverage --watchAll=false",
+    "test:all": "npm run test:server && npm run test:client",
+    "coverage:summary": "node ./scripts/coverage-summary.js",
+    "coverage:open": "start ./server/coverage/lcov-report/index.html & start ./client/coverage/lcov-report/index.html"
   }
 }

@@ -1,122 +1,161 @@
-const pool = require('../config/db');
-const { parseRequestBody, sendJsonResponse } = require('../utils/requestUtils');
-
-// Get volunteer history for a user
-const getVolunteerHistory = (req, res, userId) => {
-  const query = `
-    SELECT 
-      vh.HistoryID, vh.ParticipationStatus, vh.HoursVolunteered, vh.ParticipationDate,
-      ed.EventID, ed.EventName, ed.Description, ed.Location, ed.EventDate, ed.Urgency,
-      GROUP_CONCAT(ers.SkillName) as RequiredSkills
-    FROM VolunteerHistory vh
-    JOIN EventDetails ed ON vh.EventID = ed.EventID
-    LEFT JOIN EventRequiredSkill ers ON ed.EventID = ers.EventID
-    WHERE vh.VolunteerID = ?
-    GROUP BY vh.HistoryID
-    ORDER BY vh.ParticipationDate DESC
-  `;
-  
-  pool.query(query, [userId], (err, results) => {
-    if (err) {
-      console.error("Error fetching volunteer history:", err);
-      sendJsonResponse(res, 500, { success: false, error: "Internal server error" });
-      return;
-    }
-    
-    const history = results.map(record => ({
-      ...record,
-      RequiredSkills: record.RequiredSkills ? record.RequiredSkills.split(',') : []
-    }));
-    
-    sendJsonResponse(res, 200, { success: true, history });
-  });
-};
-
-// Get all volunteer history (admin only)
-const getAllVolunteerHistory = (req, res) => {
-  const query = `
-    SELECT 
-      vh.HistoryID, vh.ParticipationStatus, vh.HoursVolunteered, vh.ParticipationDate,
-      uc.UserID, uc.FirstName, uc.LastName, up.FullName,
-      ed.EventID, ed.EventName, ed.Description, ed.Location, ed.EventDate, ed.Urgency,
-      GROUP_CONCAT(ers.SkillName) as RequiredSkills
-    FROM VolunteerHistory vh
-    JOIN UserCredentials uc ON vh.VolunteerID = uc.UserID
-    LEFT JOIN UserProfile up ON uc.UserID = up.UserID
-    JOIN EventDetails ed ON vh.EventID = ed.EventID
-    LEFT JOIN EventRequiredSkill ers ON ed.EventID = ers.EventID
-    GROUP BY vh.HistoryID
-    ORDER BY vh.ParticipationDate DESC
-  `;
-  
-  pool.query(query, (err, results) => {
-    if (err) {
-      console.error("Error fetching all volunteer history:", err);
-      sendJsonResponse(res, 500, { success: false, error: "Internal server error" });
-      return;
-    }
-    
-    const history = results.map(record => ({
-      ...record,
-      RequiredSkills: record.RequiredSkills ? record.RequiredSkills.split(',') : []
-    }));
-    
-    sendJsonResponse(res, 200, { success: true, history });
-  });
-};
-
-// Add volunteer history record
-const addVolunteerHistory = async (req, res) => {
-  try {
-    const data = await parseRequestBody(req);
-    const { VolunteerID, EventID, ParticipationStatus, HoursVolunteered, ParticipationDate } = data;
-    
-    const query = `
-      INSERT INTO VolunteerHistory (VolunteerID, EventID, ParticipationStatus, HoursVolunteered, ParticipationDate)
-      VALUES (?, ?, ?, ?, ?)
-    `;
-    
-    pool.query(query, [VolunteerID, EventID, ParticipationStatus, HoursVolunteered, ParticipationDate], (err, result) => {
-      if (err) {
-        console.error("Error adding volunteer history:", err);
-        sendJsonResponse(res, 500, { success: false, error: "Failed to add volunteer history" });
-        return;
-      }
-      
-      sendJsonResponse(res, 200, { success: true, historyID: result.insertId, message: "History record added successfully" });
-    });
-  } catch (error) {
-    console.error('Error in addVolunteerHistory:', error);
-    sendJsonResponse(res, 500, { success: false, error: "Server error" });
-  }
-};
-
-// Update volunteer history record
-const updateVolunteerHistory = async (req, res) => {
-  try {
-    const data = await parseRequestBody(req);
-    const { HistoryID, ParticipationStatus, HoursVolunteered } = data;
-    
-    const query = 'UPDATE VolunteerHistory SET ParticipationStatus = ?, HoursVolunteered = ? WHERE HistoryID = ?';
-    
-    pool.query(query, [ParticipationStatus, HoursVolunteered, HistoryID], (err, result) => {
-      if (err) {
-        console.error("Error updating volunteer history:", err);
-        sendJsonResponse(res, 500, { success: false, error: "Failed to update volunteer history" });
-        return;
-      }
-      
-      sendJsonResponse(res, 200, { success: true, message: "History record updated successfully" });
-    });
-  } catch (error) {
-    console.error('Error in updateVolunteerHistory:', error);
-    sendJsonResponse(res, 500, { success: false, error: "Server error" });
-  }
-};
-
-module.exports = {
+const {
   getVolunteerHistory,
   getAllVolunteerHistory,
   addVolunteerHistory,
   updateVolunteerHistory
-};
+} = require("../routes/historyRoutes");
+
+const pool = require("../config/db");
+const { parseRequestBody, sendJsonResponse } = require("../utils/requestUtils");
+
+jest.mock("../config/db", () => ({ query: jest.fn() }));
+jest.mock("../utils/requestUtils", () => ({
+  parseRequestBody: jest.fn(),
+  sendJsonResponse: jest.fn()
+}));
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+describe("History Routes", () => {
+
+  // ---------------- GET VOLUNTEER HISTORY ----------------
+  test("getVolunteerHistory returns history", () => {
+    pool.query.mockImplementation((q, params, cb) =>
+      cb(null, [{ HistoryID: 1, RequiredSkills: "CPR,Driving" }])
+    );
+
+    getVolunteerHistory({}, {}, 1);
+
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      expect.anything(),
+      200,
+      {
+        success: true,
+        history: [
+          { HistoryID: 1, RequiredSkills: ["CPR", "Driving"] }
+        ]
+      }
+    );
+  });
+
+  test("getVolunteerHistory handles DB error", () => {
+    pool.query.mockImplementation((q, params, cb) =>
+      cb(new Error("DB error"), null)
+    );
+
+    getVolunteerHistory({}, {}, 1);
+
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      expect.anything(),
+      500,
+      { success: false, error: "Internal server error" }
+    );
+  });
+
+  // ---------------- GET ALL HISTORY (ADMIN) ----------------
+  test("getAllVolunteerHistory returns data", () => {
+    pool.query.mockImplementation((q, cb) =>
+      cb(null, [{ HistoryID: 2, RequiredSkills: "Nursing" }])
+    );
+
+    getAllVolunteerHistory({}, {});
+
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      expect.anything(),
+      200,
+      {
+        success: true,
+        history: [
+          { HistoryID: 2, RequiredSkills: ["Nursing"] }
+        ]
+      }
+    );
+  });
+
+  test("getAllVolunteerHistory handles DB error", () => {
+    pool.query.mockImplementation((q, cb) =>
+      cb(new Error("DB fail"), null)
+    );
+
+    getAllVolunteerHistory({}, {});
+
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      expect.anything(),
+      500,
+      { success: false, error: "Internal server error" }
+    );
+  });
+
+  // ---------------- ADD HISTORY ----------------
+  test("addVolunteerHistory adds record", async () => {
+    parseRequestBody.mockResolvedValue({
+      VolunteerID: 1,
+      EventID: 2,
+      ParticipationStatus: "attended",
+      HoursVolunteered: 5,
+      ParticipationDate: "2025-01-01"
+    });
+
+    pool.query.mockImplementation((q, p, cb) => cb(null, { insertId: 10 }));
+
+    await addVolunteerHistory({}, {});
+
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      expect.anything(),
+      200,
+      { success: true, historyID: 10, message: "History record added successfully" }
+    );
+  });
+
+  test("addVolunteerHistory handles DB error", async () => {
+    parseRequestBody.mockResolvedValue({});
+    pool.query.mockImplementation((q, p, cb) =>
+      cb(new Error("Insert fail"))
+    );
+
+    await addVolunteerHistory({}, {});
+
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      expect.anything(),
+      500,
+      { success: false, error: "Failed to add volunteer history" }
+    );
+  });
+
+  // ---------------- UPDATE HISTORY ----------------
+  test("updateVolunteerHistory updates record", async () => {
+    parseRequestBody.mockResolvedValue({
+      HistoryID: 10,
+      ParticipationStatus: "attended",
+      HoursVolunteered: 4
+    });
+
+    pool.query.mockImplementation((q, p, cb) => cb(null));
+
+    await updateVolunteerHistory({}, {});
+
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      expect.anything(),
+      200,
+      { success: true, message: "History record updated successfully" }
+    );
+  });
+
+  test("updateVolunteerHistory handles DB error", async () => {
+    parseRequestBody.mockResolvedValue({});
+    pool.query.mockImplementation((q, p, cb) =>
+      cb(new Error("Update fail"))
+    );
+
+    await updateVolunteerHistory({}, {});
+
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      expect.anything(),
+      500,
+      { success: false, error: "Failed to update volunteer history" }
+    );
+  });
+
+});

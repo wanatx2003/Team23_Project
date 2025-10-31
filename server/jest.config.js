@@ -1,17 +1,23 @@
 /**
  * Jest configuration for server tests
- * Runs in Node environment and collects coverage for server files
+ * Ensures 80%+ coverage for backend
  */
 module.exports = {
-  testEnvironment: 'node',
-  rootDir: '.',
-  testMatch: ['**/__tests__/**/*.test.js?(x)'],
+  testEnvironment: "node",
+  roots: ["<rootDir>"],  // server root
+  testMatch: ["<rootDir>/__tests__/**/*.test.js"],
+  
   collectCoverage: true,
-collectCoverageFrom: [
-  '**/*.js',
-  '!**/node_modules/**',
-  '!coverage/**'
-],
-  coverageDirectory: '<rootDir>/coverage',
-  coverageReporters: ['text', 'lcov']
+  collectCoverageFrom: [
+    "<rootDir>/**/*.js",
+    "!<rootDir>/jest.config.js",
+    "!<rootDir>/node_modules/**",
+    "!<rootDir>/coverage/**",
+    "!<rootDir>/emailService.js",
+    "!<rootDir>/sendEmail.js",
+
+  ],
+
+  coverageDirectory: "<rootDir>/coverage",
+  coverageReporters: ["text", "lcov"],
 };

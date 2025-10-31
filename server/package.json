@@ -4,6 +4,7 @@
   "main": "server.js",
   "scripts": {
     "test": "jest --coverage",
+      "testEnvironment": "node",
   "test:watch": "jest --watch",
   "coverage:open": "start ./coverage/lcov-report/index.html",
     "start": "node server",

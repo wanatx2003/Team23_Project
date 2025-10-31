@@ -19,6 +19,8 @@ const UserProfile = ({ userData, navigateToHome }) => {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
 
+  const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
   useEffect(() => {
     fetchProfile();
     fetchStates();
@@ -98,6 +100,22 @@ const UserProfile = ({ userData, navigateToHome }) => {
       newErrors.Skills = 'At least one skill must be selected';
     }
 
+    // Validate availability
+    profile.Availability.forEach((availability, index) => {
+      if (!availability.DayOfWeek) {
+        newErrors[`availability_day_${index}`] = 'Day of week is required';
+      }
+      if (!availability.StartTime) {
+        newErrors[`availability_start_${index}`] = 'Start time is required';
+      }
+      if (!availability.EndTime) {
+        newErrors[`availability_end_${index}`] = 'End time is required';
+      }
+      if (availability.StartTime && availability.EndTime && availability.StartTime >= availability.EndTime) {
+        newErrors[`availability_time_${index}`] = 'End time must be after start time';
+      }
+    });
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -141,6 +159,43 @@ const UserProfile = ({ userData, navigateToHome }) => {
     if (errors.Skills && newSkills.length > 0) {
       setErrors({ ...errors, Skills: '' });
     }
+  };
+
+  const addAvailability = () => {
+    setProfile({
+      ...profile,
+      Availability: [
+        ...profile.Availability,
+        { DayOfWeek: '', StartTime: '', EndTime: '' }
+      ]
+    });
+  };
+
+  const removeAvailability = (index) => {
+    const newAvailability = profile.Availability.filter((_, i) => i !== index);
+    setProfile({ ...profile, Availability: newAvailability });
+    
+    // Clear related errors
+    const newErrors = { ...errors };
+    delete newErrors[`availability_day_${index}`];
+    delete newErrors[`availability_start_${index}`];
+    delete newErrors[`availability_end_${index}`];
+    delete newErrors[`availability_time_${index}`];
+    setErrors(newErrors);
+  };
+
+  const updateAvailability = (index, field, value) => {
+    const newAvailability = [...profile.Availability];
+    newAvailability[index] = { ...newAvailability[index], [field]: value };
+    setProfile({ ...profile, Availability: newAvailability });
+
+    // Clear specific field errors
+    const newErrors = { ...errors };
+    if (field === 'DayOfWeek') delete newErrors[`availability_day_${index}`];
+    if (field === 'StartTime') delete newErrors[`availability_start_${index}`];
+    if (field === 'EndTime') delete newErrors[`availability_end_${index}`];
+    delete newErrors[`availability_time_${index}`];
+    setErrors(newErrors);
   };
 
   if (loading) {
@@ -277,6 +332,82 @@ const UserProfile = ({ userData, navigateToHome }) => {
               rows={4}
             />
           </div>
+        </div>
+
+        <div className="form-section">
+          <h3>Availability</h3>
+          <p>Set your available days and times for volunteering</p>
+          
+          <div className="availability-list">
+            {profile.Availability.map((availability, index) => (
+              <div key={index} className="availability-item">
+                <div className="availability-row">
+                  <div className="form-group">
+                    <label htmlFor={`day-${index}`}>Day</label>
+                    <select
+                      id={`day-${index}`}
+                      value={availability.DayOfWeek}
+                      onChange={(e) => updateAvailability(index, 'DayOfWeek', e.target.value)}
+                    >
+                      <option value="">Select Day</option>
+                      {daysOfWeek.map(day => (
+                        <option key={day} value={day}>{day}</option>
+                      ))}
+                    </select>
+                    {errors[`availability_day_${index}`] && (
+                      <span className="error">{errors[`availability_day_${index}`]}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor={`start-${index}`}>Start Time</label>
+                    <input
+                      type="time"
+                      id={`start-${index}`}
+                      value={availability.StartTime}
+                      onChange={(e) => updateAvailability(index, 'StartTime', e.target.value)}
+                    />
+                    {errors[`availability_start_${index}`] && (
+                      <span className="error">{errors[`availability_start_${index}`]}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor={`end-${index}`}>End Time</label>
+                    <input
+                      type="time"
+                      id={`end-${index}`}
+                      value={availability.EndTime}
+                      onChange={(e) => updateAvailability(index, 'EndTime', e.target.value)}
+                    />
+                    {errors[`availability_end_${index}`] && (
+                      <span className="error">{errors[`availability_end_${index}`]}</span>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => removeAvailability(index)}
+                    className="btn-remove"
+                    title="Remove availability"
+                  >
+                    ×
+                  </button>
+                </div>
+                {errors[`availability_time_${index}`] && (
+                  <span className="error">{errors[`availability_time_${index}`]}</span>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <button
+            type="button"
+            onClick={addAvailability}
+            className="btn-secondary"
+          >
+            + Add Availability
+          </button>
         </div>
 
         <div className="form-actions">

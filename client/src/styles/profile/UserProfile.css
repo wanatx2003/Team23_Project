@@ -1,53 +1,61 @@
 .profile-container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 20px;
+  padding: var(--spacing-lg, 2rem);
 }
 
 .profile-header {
   text-align: center;
-  margin-bottom: 40px;
-  padding: 40px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin-bottom: var(--spacing-xl, 3rem);
+  padding: var(--spacing-xl, 3rem) var(--spacing-lg, 2rem);
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
   color: white;
-  border-radius: 12px;
+  border-radius: var(--radius-xl, 1.5rem);
+  box-shadow: var(--shadow-lg, 0 10px 15px rgba(79, 70, 229, 0.3));
 }
 
 .profile-header h1 {
   font-size: 2.5rem;
-  margin-bottom: 10px;
-  font-weight: 600;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: white;
 }
 
 .profile-header p {
-  font-size: 1.1rem;
-  opacity: 0.9;
+  font-size: 1.125rem;
+  opacity: 0.95;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .loading {
-  text-align: center;
-  padding: 50px;
-  font-size: 1.2rem;
-  color: #666;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  font-size: 1.125rem;
+  color: var(--text-secondary, #6B7280);
 }
 
 .profile-form {
   background: white;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: var(--spacing-xl, 3rem);
+  border-radius: var(--radius-lg, 1rem);
+  box-shadow: var(--shadow-lg, 0 10px 15px rgba(0, 0, 0, 0.1));
 }
 
 .form-section {
-  margin-bottom: 40px;
+  margin-bottom: var(--spacing-xl, 3rem);
 }
 
 .form-section h3 {
-  color: #333;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #eee;
-  font-weight: 600;
+  color: var(--text-primary, #111827);
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-lg, 2rem);
+  padding-bottom: var(--spacing, 1rem);
+  border-bottom: 3px solid var(--primary-color, #4F46E5);
+  font-weight: 700;
 }
 
 .form-group {
@@ -96,20 +104,25 @@
 .skill-checkbox {
   display: flex;
   align-items: center;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border-color, #E5E7EB);
+  border-radius: var(--radius, 0.5rem);
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all var(--transition, 0.2s ease);
+  background: white;
 }
 
 .skill-checkbox:hover {
-  background-color: #f8f9fa;
+  background-color: var(--bg-tertiary, #F3F4F6);
+  border-color: var(--primary-color, #4F46E5);
 }
 
 .skill-checkbox input[type="checkbox"] {
-  margin-right: 10px;
-  width: auto;
+  margin-right: 0.75rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  cursor: pointer;
+  accent-color: var(--primary-color, #4F46E5);
 }
 
 .skill-checkbox .checkmark {

@@ -113,17 +113,17 @@ function App() {
           />
         );
       case "profile":
-        return <UserProfile userData={userData} />;
+        return <UserProfile userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
       case "events":
-        return <EventsList userData={userData} />;
+        return <EventsList userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
       case "eventManagement":
-        return <EventManagement userData={userData} />;
+        return <EventManagement userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
       case "matching":
-        return <VolunteerMatching />;
+        return <VolunteerMatching userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
       case "notifications":
-        return <Notifications userData={userData} />;
+        return <Notifications userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
       case "history":
-        return <VolunteerHistory userData={userData} />;
+        return <VolunteerHistory userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
       default:
         return (
           <LandingPage

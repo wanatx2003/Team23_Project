@@ -16,6 +16,7 @@ import TopBar from "./components/layout/TopBar";
 import LandingPage from "./components/landing/LandingPage";
 import VolunteerDashboard from "./components/volunteer/VolunteerDashboard";
 import EventsList from "./components/volunteer/EventsList";
+import AdminReports from "./components/admin/AdminReports";
 
 // Import API service
 import API from "./services/api";
@@ -124,6 +125,8 @@ function App() {
         return <Notifications userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
       case "history":
         return <VolunteerHistory userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
+      case "reports":
+        return <AdminReports navigateToHome={() => setCurrentPage("dashboard")} />;
       default:
         return (
           <LandingPage
@@ -150,6 +153,7 @@ function App() {
         navigateToLanding={() => setCurrentPage("landing")}
         navigateToHome={() => setCurrentPage("dashboard")}
         navigateToEvents={() => setCurrentPage("events")}
+        navigateToReports={() => setCurrentPage("reports")}
       />
 
       <div className={isLoggedIn ? "content-container" : ""}>

@@ -7,28 +7,22 @@ const getVolunteerMatches = (req, res) => {
     SELECT DISTINCT
       uc.UserID, uc.FirstName, uc.LastName, uc.Email,
       up.FullName, up.City, up.StateCode,
-      GROUP_CONCAT(DISTINCT us.SkillName) as Skills,
-      ed.EventID, ed.EventName, ed.EventDate, ed.Urgency,
-      GROUP_CONCAT(DISTINCT ers.SkillName) as RequiredSkills,
-      CASE 
-        WHEN vm.MatchID IS NOT NULL THEN vm.MatchStatus
-        ELSE 'unmatched'
-      END as MatchStatus
-    FROM UserCredentials uc
+      GROUP_CONCAT(DISTINCT us.SkillName ORDER BY us.SkillName) as Skills,
+      ed.EventID, ed.EventName, ed.EventDate, ed.EventTime, ed.Urgency, ed.Location, ed.Description,
+      ed.MaxVolunteers, ed.CurrentVolunteers,
+      GROUP_CONCAT(DISTINCT ers.SkillName ORDER BY ers.SkillName) as RequiredSkills,
+      COALESCE(vm.MatchStatus, 'unmatched') as MatchStatus,
+      vm.MatchID
+    FROM EventDetails ed
+    LEFT JOIN EventRequiredSkill ers ON ed.EventID = ers.EventID
+    CROSS JOIN UserCredentials uc
     LEFT JOIN UserProfile up ON uc.UserID = up.UserID
     LEFT JOIN UserSkill us ON uc.UserID = us.UserID
-    CROSS JOIN EventDetails ed
-    LEFT JOIN EventRequiredSkill ers ON ed.EventID = ers.EventID
     LEFT JOIN VolunteerMatches vm ON uc.UserID = vm.VolunteerID AND ed.EventID = vm.EventID
     WHERE uc.Role = 'volunteer' 
       AND ed.EventStatus = 'published'
       AND ed.EventDate >= CURDATE()
-    GROUP BY uc.UserID, ed.EventID
-    HAVING (
-      FIND_IN_SET(ers.SkillName, Skills) > 0
-      OR Skills IS NULL
-      OR RequiredSkills IS NULL
-    )
+    GROUP BY uc.UserID, ed.EventID, vm.MatchStatus, vm.MatchID
     ORDER BY ed.EventDate, ed.Urgency DESC, uc.LastName
   `;
   
@@ -39,16 +33,29 @@ const getVolunteerMatches = (req, res) => {
       return;
     }
     
-    // Group by events and volunteers
-    const matches = results.map(match => ({
-      ...match,
-      Skills: match.Skills ? match.Skills.split(',') : [],
-      RequiredSkills: match.RequiredSkills ? match.RequiredSkills.split(',') : [],
-      SkillMatch: match.Skills && match.RequiredSkills ? 
-        match.RequiredSkills.split(',').some(reqSkill => 
-          match.Skills.split(',').includes(reqSkill)
-        ) : false
-    }));
+    // Process and enhance the results
+    const matches = results.map(match => {
+      const volunteerSkills = match.Skills ? match.Skills.split(',') : [];
+      const requiredSkills = match.RequiredSkills ? match.RequiredSkills.split(',') : [];
+      
+      // Calculate skill match percentage
+      const matchingSkills = volunteerSkills.filter(skill => 
+        requiredSkills.includes(skill)
+      );
+      
+      const skillMatchPercentage = requiredSkills.length > 0 
+        ? Math.round((matchingSkills.length / requiredSkills.length) * 100)
+        : 0;
+      
+      return {
+        ...match,
+        Skills: volunteerSkills,
+        RequiredSkills: requiredSkills,
+        MatchingSkills: matchingSkills,
+        SkillMatch: matchingSkills.length > 0,
+        SkillMatchPercentage: skillMatchPercentage
+      };
+    });
     
     sendJsonResponse(res, 200, { success: true, matches });
   });

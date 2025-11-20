@@ -90,6 +90,14 @@
   display: block;
 }
 
+.form-hint {
+  display: block;
+  font-size: 0.75rem;
+  color: #6B7280;
+  margin-top: 0.25rem;
+  font-style: italic;
+}
+
 .register-button {
   width: 100%;
   padding: 12px;

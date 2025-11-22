@@ -163,6 +163,24 @@ const EventManagement = ({ userData, navigateToHome }) => {
     }
   };
 
+  const formatTime = (timeString) => {
+    if (!timeString) return null;
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  const formatTimeRange = (startTime, endTime) => {
+    if (!startTime && !endTime) return null;
+    if (startTime && endTime) {
+      return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+    }
+    if (startTime) return `Starts at ${formatTime(startTime)}`;
+    return `Ends at ${formatTime(endTime)}`;
+  };
+
   const handleSkillChange = (skill) => {
     const newSkills = eventForm.RequiredSkills.includes(skill)
       ? eventForm.RequiredSkills.filter(s => s !== skill)
@@ -316,6 +334,9 @@ const EventManagement = ({ userData, navigateToHome }) => {
                   </span>
                 </div>
                 <p><strong>Date:</strong> {new Date(event.EventDate).toLocaleDateString()}</p>
+                {formatTimeRange(event.StartTime, event.EndTime) && (
+                  <p><strong>Time:</strong> {formatTimeRange(event.StartTime, event.EndTime)}</p>
+                )}
                 <p><strong>Location:</strong> {event.Location}</p>
                 <p><strong>Required Skills:</strong> {event.RequiredSkills?.join(', ') || 'None'}</p>
                 <p><strong>Volunteers:</strong> {event.CurrentVolunteers}/{event.MaxVolunteers || '∞'}</p>

@@ -15,7 +15,8 @@ const EventManagement = ({ userData, navigateToHome }) => {
     RequiredSkills: [],
     Urgency: 'medium',
     EventDate: '',
-    EventTime: '',
+    StartTime: '',
+    EndTime: '',
     MaxVolunteers: ''
   });
 
@@ -56,13 +57,19 @@ const EventManagement = ({ userData, navigateToHome }) => {
       const url = editingEvent ? `/api/events/${editingEvent.EventID}` : '/api/events';
       const method = editingEvent ? 'PUT' : 'POST';
       
+      const requestData = {
+        ...eventForm,
+        CreatedBy: userData.UserID
+      };
+
+      if (editingEvent) {
+        requestData.EventID = editingEvent.EventID;
+      }
+      
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...eventForm,
-          CreatedBy: userData.UserID
-        })
+        body: JSON.stringify(requestData)
       });
 
       const data = await response.json();
@@ -87,7 +94,8 @@ const EventManagement = ({ userData, navigateToHome }) => {
       RequiredSkills: [],
       Urgency: 'medium',
       EventDate: '',
-      EventTime: '',
+      StartTime: '',
+      EndTime: '',
       MaxVolunteers: ''
     });
     setShowCreateForm(false);
@@ -95,6 +103,13 @@ const EventManagement = ({ userData, navigateToHome }) => {
   };
 
   const handleEdit = (event) => {
+    // Convert time from HH:MM:SS to HH:MM for HTML time input
+    const formatTimeForInput = (time) => {
+      if (!time) return '';
+      // If time is in HH:MM:SS format, extract HH:MM
+      return time.split(':').slice(0, 2).join(':');
+    };
+
     setEventForm({
       EventName: event.EventName,
       Description: event.Description,
@@ -102,7 +117,8 @@ const EventManagement = ({ userData, navigateToHome }) => {
       RequiredSkills: event.RequiredSkills || [],
       Urgency: event.Urgency,
       EventDate: event.EventDate.split('T')[0],
-      EventTime: event.EventTime || '',
+      StartTime: formatTimeForInput(event.StartTime),
+      EndTime: formatTimeForInput(event.EndTime),
       MaxVolunteers: event.MaxVolunteers || ''
     });
     setEditingEvent(event);
@@ -124,6 +140,26 @@ const EventManagement = ({ userData, navigateToHome }) => {
         console.error('Error deleting event:', error);
         alert('An error occurred while deleting the event.');
       }
+    }
+  };
+
+  const handleStatusChange = async (eventId, newStatus) => {
+    try {
+      const response = await fetch(`/api/events/${eventId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ EventID: eventId, EventStatus: newStatus })
+      });
+      const data = await response.json();
+      if (data.success) {
+        alert('Event status updated successfully!');
+        fetchEvents();
+      } else {
+        alert('Error: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Error updating event status:', error);
+      alert('An error occurred while updating the event status.');
     }
   };
 
@@ -225,11 +261,20 @@ const EventManagement = ({ userData, navigateToHome }) => {
               </div>
 
               <div className="form-group">
-                <label>Event Time</label>
+                <label>Start Time</label>
                 <input
                   type="time"
-                  value={eventForm.EventTime}
-                  onChange={(e) => setEventForm({ ...eventForm, EventTime: e.target.value })}
+                  value={eventForm.StartTime}
+                  onChange={(e) => setEventForm({ ...eventForm, StartTime: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>End Time</label>
+                <input
+                  type="time"
+                  value={eventForm.EndTime}
+                  onChange={(e) => setEventForm({ ...eventForm, EndTime: e.target.value })}
                 />
               </div>
 
@@ -274,6 +319,21 @@ const EventManagement = ({ userData, navigateToHome }) => {
                 <p><strong>Location:</strong> {event.Location}</p>
                 <p><strong>Required Skills:</strong> {event.RequiredSkills?.join(', ') || 'None'}</p>
                 <p><strong>Volunteers:</strong> {event.CurrentVolunteers}/{event.MaxVolunteers || '∞'}</p>
+                
+                <div className="event-status-section">
+                  <label><strong>Status:</strong></label>
+                  <select 
+                    value={event.EventStatus} 
+                    onChange={(e) => handleStatusChange(event.EventID, e.target.value)}
+                    className={`status-select ${event.EventStatus}`}
+                  >
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
                 
                 <div className="event-actions">
                   <button onClick={() => handleEdit(event)} className="btn-edit">

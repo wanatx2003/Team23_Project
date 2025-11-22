@@ -98,12 +98,21 @@ const EventsList = ({ userData, navigateToHome }) => {
   };
 
   const formatTime = (timeString) => {
-    if (!timeString) return 'Time TBD';
-    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+    if (!timeString) return null;
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  const formatTimeRange = (startTime, endTime) => {
+    if (!startTime && !endTime) return 'Time TBD';
+    if (startTime && endTime) {
+      return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+    }
+    if (startTime) return `Starts at ${formatTime(startTime)}`;
+    return `Ends at ${formatTime(endTime)}`;
   };
 
   const getUrgencyClass = (urgency) => {
@@ -181,50 +190,70 @@ const EventsList = ({ userData, navigateToHome }) => {
         {filteredEvents.length > 0 ? (
           filteredEvents.map(event => (
             <div key={event.EventID} className="event-card">
-              <div className="event-header">
-                <h3>{event.EventName}</h3>
-                <span className={`urgency-badge ${getUrgencyClass(event.Urgency)}`}>
-                  {event.Urgency}
-                </span>
-              </div>
-
-              <div className="event-details">
-                <div className="event-date">
-                  <strong>📅 Date:</strong> {formatDate(event.EventDate)}
+              <div className="event-card-header">
+                <div className="event-title-section">
+                  <h3>{event.EventName}</h3>
+                  <span className={`urgency-badge ${getUrgencyClass(event.Urgency)}`}>
+                    {event.Urgency}
+                  </span>
                 </div>
-                <div className="event-time">
-                  <strong>🕒 Time:</strong> {formatTime(event.EventTime)}
-                </div>
-                <div className="event-location">
-                  <strong>📍 Location:</strong> {event.Location}
-                </div>
-                <div className="event-volunteers">
-                  <strong>👥 Volunteers:</strong> {event.CurrentVolunteers}/{event.MaxVolunteers || '∞'}
+                <div className="event-date-section">
+                  <div className="date-display">
+                    <span className="date-day">{new Date(event.EventDate).getDate()}</span>
+                    <span className="date-month">{new Date(event.EventDate).toLocaleDateString('en-US', { month: 'short' })}</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="event-description">
-                <p>{event.Description}</p>
-              </div>
+              <div className="event-card-body">
+                <div className="event-meta">
+                  <div className="meta-item">
+                    <span className="meta-icon">🕐</span>
+                    <span className="meta-text">{formatTimeRange(event.StartTime, event.EndTime)}</span>
+                  </div>
+                  <div className="meta-item">
+                    <span className="meta-icon">📍</span>
+                    <span className="meta-text">{event.Location}</span>
+                  </div>
+                  <div className="meta-item">
+                    <span className="meta-icon">👥</span>
+                    <span className="meta-text">
+                      {event.CurrentVolunteers}/{event.MaxVolunteers || '∞'} volunteers
+                      {event.MaxVolunteers && (
+                        <span className="capacity-bar">
+                          <span 
+                            className="capacity-fill" 
+                            style={{ width: `${(event.CurrentVolunteers / event.MaxVolunteers) * 100}%` }}
+                          />
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </div>
 
-              <div className="event-skills">
-                <strong>Required Skills:</strong>
-                <div className="skills-list">
-                  {event.RequiredSkills?.map(skill => (
-                    <span key={skill} className="skill-tag">{skill}</span>
-                  )) || 'No specific skills required'}
+                <div className="event-description">
+                  <p>{event.Description}</p>
+                </div>
+
+                <div className="event-skills">
+                  <span className="skills-label">Required Skills:</span>
+                  <div className="skills-list">
+                    {event.RequiredSkills?.map(skill => (
+                      <span key={skill} className="skill-tag">{skill}</span>
+                    )) || <span className="no-skills">No specific skills required</span>}
+                  </div>
                 </div>
               </div>
 
-              <div className="event-actions">
+              <div className="event-card-footer">
                 <button 
                   onClick={() => handleVolunteerRequest(event.EventID)}
                   className="volunteer-btn"
                   disabled={event.MaxVolunteers && event.CurrentVolunteers >= event.MaxVolunteers}
                 >
                   {event.MaxVolunteers && event.CurrentVolunteers >= event.MaxVolunteers 
-                    ? 'Event Full' 
-                    : 'Volunteer for this Event'
+                    ? '🔒 Event Full' 
+                    : '✨ Volunteer for this Event'
                   }
                 </button>
               </div>

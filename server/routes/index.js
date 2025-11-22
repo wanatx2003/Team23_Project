@@ -4,7 +4,7 @@ const { sendJsonResponse } = require('../utils/requestUtils');
 // Import volunteer management route handlers
 const { login, register, getAllUsers } = require('./authRoutes');
 const { getUserProfile, updateUserProfile, getStates, getAvailableSkills, getAllUsers: getAllUsersDetailed, updateUserStatus } = require('./userRoutes');
-const { getAllEvents, createEvent, updateEvent, deleteEvent } = require('./eventRoutes');
+const { getAllEvents, createEvent, updateEvent, deleteEvent, updateEventStatus } = require('./eventRoutes');
 const { getVolunteerMatches, createVolunteerMatch, updateMatchStatus } = require('./matchingRoutes');
 const { getUserNotifications, markNotificationRead, getUnreadCount } = require('./notificationRoutes');
 const { getVolunteerHistory, getAllVolunteerHistory, addVolunteerHistory, updateVolunteerHistory } = require('./historyRoutes');
@@ -63,6 +63,10 @@ const handleRequest = async (req, res) => {
 
   if (pathname === '/api/events' && method === 'POST') {
     return createEvent(req, res);
+  }
+
+  if (pathname.match(/^\/api\/events\/\d+\/status$/) && method === 'PUT') {
+    return updateEventStatus(req, res);
   }
 
   if (pathname.startsWith('/api/events/') && method === 'PUT') {

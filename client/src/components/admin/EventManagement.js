@@ -17,7 +17,8 @@ const EventManagement = ({ userData }) => {
     RequiredSkills: [],
     Urgency: 'medium',
     EventDate: '',
-    EventTime: '',
+    StartTime: '',
+    EndTime: '',
     MaxVolunteers: ''
   });
 
@@ -103,7 +104,7 @@ const EventManagement = ({ userData }) => {
     setMessage('');
 
     try {
-      const url = editingEvent ? '/api/events' : '/api/events';
+      const url = editingEvent ? `/api/events/${editingEvent.EventID}` : '/api/events';
       const method = editingEvent ? 'PUT' : 'POST';
       
       const requestData = {
@@ -148,7 +149,8 @@ const EventManagement = ({ userData }) => {
       RequiredSkills: [],
       Urgency: 'medium',
       EventDate: '',
-      EventTime: '',
+      StartTime: '',
+      EndTime: '',
       MaxVolunteers: ''
     });
     setEditingEvent(null);
@@ -156,6 +158,13 @@ const EventManagement = ({ userData }) => {
   };
 
   const handleEdit = (event) => {
+    // Convert time from HH:MM:SS to HH:MM for HTML time input
+    const formatTimeForInput = (time) => {
+      if (!time) return '';
+      // If time is in HH:MM:SS format, extract HH:MM
+      return time.split(':').slice(0, 2).join(':');
+    };
+
     setFormData({
       EventName: event.EventName,
       Description: event.Description,
@@ -163,7 +172,8 @@ const EventManagement = ({ userData }) => {
       RequiredSkills: event.RequiredSkills || [],
       Urgency: event.Urgency,
       EventDate: event.EventDate.split('T')[0],
-      EventTime: event.EventTime || '',
+      StartTime: formatTimeForInput(event.StartTime),
+      EndTime: formatTimeForInput(event.EndTime),
       MaxVolunteers: event.MaxVolunteers || ''
     });
     setEditingEvent(event);
@@ -207,6 +217,24 @@ const EventManagement = ({ userData }) => {
       case 'low': return 'urgency-low';
       default: return 'urgency-medium';
     }
+  };
+
+  const formatTime = (timeString) => {
+    if (!timeString) return null;
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  const formatTimeRange = (startTime, endTime) => {
+    if (!startTime && !endTime) return '';
+    if (startTime && endTime) {
+      return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+    }
+    if (startTime) return `Starts at ${formatTime(startTime)}`;
+    return `Ends at ${formatTime(endTime)}`;
   };
 
   return (
@@ -300,13 +328,26 @@ const EventManagement = ({ userData }) => {
               </div>
 
               <div className="form-group">
-                <label htmlFor="EventTime">Event Time</label>
+                <label htmlFor="StartTime">Start Time</label>
                 <input
                   type="time"
-                  id="EventTime"
-                  name="EventTime"
-                  value={formData.EventTime}
+                  id="StartTime"
+                  name="StartTime"
+                  value={formData.StartTime}
                   onChange={handleChange}
+                  placeholder="Event start time"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="EndTime">End Time</label>
+                <input
+                  type="time"
+                  id="EndTime"
+                  name="EndTime"
+                  value={formData.EndTime}
+                  onChange={handleChange}
+                  placeholder="Event end time"
                 />
               </div>
 
@@ -371,6 +412,9 @@ const EventManagement = ({ userData }) => {
                 </div>
 
                 <p className="event-date">📅 {formatDate(event.EventDate)}</p>
+                {(event.StartTime || event.EndTime) && (
+                  <p className="event-time">🕐 {formatTimeRange(event.StartTime, event.EndTime)}</p>
+                )}
                 <p className="event-location">📍 {event.Location}</p>
                 <p className="event-description">{event.Description}</p>
 

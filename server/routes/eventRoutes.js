@@ -6,7 +6,7 @@ const getAllEvents = (req, res) => {
   const query = `
     SELECT 
       ed.EventID, ed.EventName, ed.Description, ed.Location, ed.Urgency,
-      ed.EventDate, ed.EventTime, ed.MaxVolunteers, ed.CurrentVolunteers,
+      ed.EventDate, ed.StartTime, ed.EndTime, ed.MaxVolunteers, ed.CurrentVolunteers,
       ed.EventStatus, ed.CreatedAt,
       uc.FirstName as CreatedByName,
       GROUP_CONCAT(ers.SkillName) as RequiredSkills
@@ -38,7 +38,7 @@ const getAllEvents = (req, res) => {
 const createEvent = async (req, res) => {
   try {
     const data = await parseRequestBody(req);
-    const { EventName, Description, Location, RequiredSkills, Urgency, EventDate, EventTime, CreatedBy, MaxVolunteers } = data;
+    const { EventName, Description, Location, RequiredSkills, Urgency, EventDate, StartTime, EndTime, CreatedBy, MaxVolunteers } = data;
     
     // Validation
     if (!EventName || EventName.length > 100) {
@@ -66,12 +66,17 @@ const createEvent = async (req, res) => {
       return;
     }
     
+    // Convert empty strings to null for optional fields
+    const startTime = StartTime || null;
+    const endTime = EndTime || null;
+    const maxVol = MaxVolunteers || null;
+    
     const query = `
-      INSERT INTO EventDetails (EventName, Description, Location, Urgency, EventDate, EventTime, CreatedBy, MaxVolunteers, EventStatus)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'published')
+      INSERT INTO EventDetails (EventName, Description, Location, Urgency, EventDate, StartTime, EndTime, CreatedBy, MaxVolunteers, EventStatus)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'published')
     `;
     
-    pool.query(query, [EventName, Description, Location, Urgency, EventDate, EventTime, CreatedBy, MaxVolunteers || null], (err, result) => {
+    pool.query(query, [EventName, Description, Location, Urgency, EventDate, startTime, endTime, CreatedBy, maxVol], (err, result) => {
       if (err) {
         console.error("Error creating event:", err);
         sendJsonResponse(res, 500, { success: false, error: "Failed to create event" });
@@ -109,15 +114,23 @@ const createEvent = async (req, res) => {
 const updateEvent = async (req, res) => {
   try {
     const data = await parseRequestBody(req);
-    const { EventID, EventName, Description, Location, RequiredSkills, Urgency, EventDate, EventTime, MaxVolunteers } = data;
+    const { EventID, EventName, Description, Location, RequiredSkills, Urgency, EventDate, StartTime, EndTime, MaxVolunteers } = data;
+    
+    console.log('Updating event:', EventID);
+    console.log('StartTime:', StartTime, 'EndTime:', EndTime);
+    
+    // Convert empty strings to null for time fields
+    const startTime = StartTime || null;
+    const endTime = EndTime || null;
+    const maxVol = MaxVolunteers || null;
     
     const query = `
       UPDATE EventDetails 
-      SET EventName = ?, Description = ?, Location = ?, Urgency = ?, EventDate = ?, EventTime = ?, MaxVolunteers = ?
+      SET EventName = ?, Description = ?, Location = ?, Urgency = ?, EventDate = ?, StartTime = ?, EndTime = ?, MaxVolunteers = ?
       WHERE EventID = ?
     `;
     
-    pool.query(query, [EventName, Description, Location, Urgency, EventDate, EventTime, MaxVolunteers, EventID], (err, result) => {
+    pool.query(query, [EventName, Description, Location, Urgency, EventDate, startTime, endTime, maxVol, EventID], (err, result) => {
       if (err) {
         console.error("Error updating event:", err);
         sendJsonResponse(res, 500, { success: false, error: "Failed to update event" });
@@ -242,7 +255,7 @@ const getAvailableEvents = (req, res) => {
   const query = `
     SELECT 
       ed.EventID, ed.EventName, ed.Description, ed.Location, ed.Urgency,
-      ed.EventDate, ed.EventTime, ed.MaxVolunteers, ed.CurrentVolunteers,
+      ed.EventDate, ed.StartTime, ed.EndTime, ed.MaxVolunteers, ed.CurrentVolunteers,
       ed.EventStatus, ed.CreatedAt,
       uc.FirstName as CreatedByName,
       GROUP_CONCAT(ers.SkillName) as RequiredSkills
@@ -269,6 +282,41 @@ const getAvailableEvents = (req, res) => {
     
     sendJsonResponse(res, 200, { success: true, events });
   });
+};
+
+// Update event status
+const updateEventStatus = async (req, res) => {
+  try {
+    const data = await parseRequestBody(req);
+    const { EventID, EventStatus } = data;
+    
+    // Validate status
+    const validStatuses = ['draft', 'published', 'in_progress', 'completed', 'cancelled'];
+    if (!validStatuses.includes(EventStatus)) {
+      sendJsonResponse(res, 400, { success: false, error: "Invalid event status" });
+      return;
+    }
+    
+    const query = 'UPDATE EventDetails SET EventStatus = ? WHERE EventID = ?';
+    
+    pool.query(query, [EventStatus, EventID], (err, result) => {
+      if (err) {
+        console.error("Error updating event status:", err);
+        sendJsonResponse(res, 500, { success: false, error: "Failed to update event status" });
+        return;
+      }
+      
+      if (result.affectedRows === 0) {
+        sendJsonResponse(res, 404, { success: false, error: "Event not found" });
+        return;
+      }
+      
+      sendJsonResponse(res, 200, { success: true, message: "Event status updated successfully" });
+    });
+  } catch (error) {
+    console.error('Error in updateEventStatus:', error);
+    sendJsonResponse(res, 500, { success: false, error: "Server error" });
+  }
 };
 
 // Create volunteer request
@@ -352,5 +400,6 @@ module.exports = {
   getVolunteerMatches,
   createVolunteerMatch,
   getAvailableEvents,
-  createVolunteerRequest
+  createVolunteerRequest,
+  updateEventStatus
 };

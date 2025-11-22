@@ -88,6 +88,21 @@ const server = http.createServer((req, res) => {
     const userId = requestUrl.split('/').pop();
     const volunteerRoutes = require('./routes/volunteerRoutes');
     volunteerRoutes.getMatchedEvents(req, res, userId);
+  } else if (requestUrl.startsWith('/api/volunteer-events/') && method === 'GET') {
+    const userId = requestUrl.split('/').pop();
+    const volunteerRoutes = require('./routes/volunteerRoutes');
+    volunteerRoutes.getMatchedEvents(req, res, userId);
+  } else if (requestUrl.startsWith('/api/volunteer/my-assignments/') && method === 'GET') {
+    const userId = requestUrl.split('/').pop();
+    const volunteerRoutes = require('./routes/volunteerRoutes');
+    volunteerRoutes.getMyAssignments(req, res, userId);
+  } else if (requestUrl === '/api/volunteer/submit-attendance' && method === 'POST') {
+    const volunteerRoutes = require('./routes/volunteerRoutes');
+    volunteerRoutes.submitAttendance(req, res);
+  } else if (requestUrl.startsWith('/api/volunteer-history/') && method === 'GET') {
+    const userId = requestUrl.split('/').pop();
+    const historyRoutes = require('./routes/historyRoutes');
+    historyRoutes.getVolunteerHistory(req, res, userId);
   } else if (requestUrl.startsWith('/api/events/available-with-matching/') && method === 'GET') {
     const userId = requestUrl.split('/').pop();
     const volunteerRoutes = require('./routes/volunteerRoutes');
@@ -103,6 +118,21 @@ const server = http.createServer((req, res) => {
   } else if (requestUrl.startsWith('/api/notifications/') && method === 'GET') {
     const userId = requestUrl.split('/').pop();
     notificationRoutes.getUserNotifications(req, res, userId);
+  }
+  
+  // Report routes
+  else if (requestUrl.startsWith('/api/volunteer-report') && method === 'GET') {
+    const volunteerReportRoutes = require('./routes/volunteerReportRoutes');
+    volunteerReportRoutes.getVolunteerParticipationReport(req, res);
+  } else if (requestUrl.startsWith('/api/reports/volunteer-participation') && method === 'GET') {
+    const volunteerReportRoutes = require('./routes/volunteerReportRoutes');
+    volunteerReportRoutes.getVolunteerParticipationReport(req, res);
+  } else if (requestUrl.startsWith('/api/reports/event-summary') && method === 'GET') {
+    const volunteerReportRoutes = require('./routes/volunteerReportRoutes');
+    volunteerReportRoutes.getEventSummaryReport(req, res);
+  } else if (requestUrl.startsWith('/api/reports/volunteer-summary') && method === 'GET') {
+    const volunteerReportRoutes = require('./routes/volunteerReportRoutes');
+    volunteerReportRoutes.getVolunteerSummaryReport(req, res);
   }
   
   else {

@@ -94,9 +94,18 @@ const createVolunteerMatch = async (req, res) => {
           return;
         }
         
-        // Update event volunteer count
-        const updateQuery = 'UPDATE EventDetails SET CurrentVolunteers = CurrentVolunteers + 1 WHERE EventID = ?';
-        pool.query(updateQuery, [EventID], (updateErr) => {
+        // Update event volunteer count based on actual matches
+        const updateQuery = `
+          UPDATE EventDetails 
+          SET CurrentVolunteers = (
+            SELECT COUNT(DISTINCT vm.VolunteerID) 
+            FROM VolunteerMatches vm 
+            WHERE vm.EventID = ? AND vm.MatchStatus IN ('pending', 'confirmed')
+          )
+          WHERE EventID = ?
+        `;
+        
+        pool.query(updateQuery, [EventID, EventID], (updateErr) => {
           if (updateErr) {
             console.error("Error updating volunteer count:", updateErr);
           }
@@ -147,17 +156,23 @@ const updateMatchStatus = async (req, res, matchId) => {
 const getVolunteerStats = (req, res, userId) => {
   const statsQuery = `
     SELECT 
-      COUNT(CASE WHEN vm.MatchStatus = 'confirmed' AND ed.EventDate >= CURDATE() THEN 1 END) as upcomingEvents,
-      COUNT(CASE WHEN vh.ParticipationStatus = 'attended' THEN 1 END) as completedEvents,
-      COALESCE(SUM(CASE WHEN vh.ParticipationStatus = 'attended' THEN vh.HoursVolunteered END), 0) as totalHours,
-      (SELECT COUNT(*) FROM Notifications WHERE UserID = ? AND IsRead = 0) as unreadNotifications
-    FROM VolunteerMatches vm
-    LEFT JOIN EventDetails ed ON vm.EventID = ed.EventID
-    LEFT JOIN VolunteerHistory vh ON vm.VolunteerID = vh.VolunteerID
-    WHERE vm.VolunteerID = ?
+      (SELECT COUNT(DISTINCT vm.EventID) 
+       FROM VolunteerMatches vm 
+       JOIN EventDetails ed ON vm.EventID = ed.EventID 
+       WHERE vm.VolunteerID = ? AND vm.MatchStatus IN ('pending', 'confirmed') 
+       AND ed.EventDate >= CURDATE()) as upcomingEvents,
+      (SELECT COUNT(DISTINCT vh.EventID) 
+       FROM VolunteerHistory vh 
+       WHERE vh.VolunteerID = ? AND vh.ParticipationStatus = 'attended') as completedEvents,
+      (SELECT COALESCE(SUM(vh.HoursVolunteered), 0) 
+       FROM VolunteerHistory vh 
+       WHERE vh.VolunteerID = ? AND vh.ParticipationStatus = 'attended') as totalHours,
+      (SELECT COUNT(*) 
+       FROM Notifications 
+       WHERE UserID = ? AND IsRead = 0) as unreadNotifications
   `;
   
-  pool.query(statsQuery, [userId, userId], (err, results) => {
+  pool.query(statsQuery, [userId, userId, userId, userId], (err, results) => {
     if (err) {
       console.error("Error fetching volunteer stats:", err);
       sendJsonResponse(res, 500, { success: false, error: "Internal server error" });
@@ -223,6 +238,48 @@ const getUpcomingEvents = (req, res, userId) => {
   });
 };
 
+// Get all assignments for volunteer (pending, confirmed, declined, completed)
+const getMyAssignments = (req, res, userId) => {
+  const query = `
+    SELECT 
+      vm.MatchID, vm.MatchStatus, vm.RequestedAt,
+      ed.EventID, ed.EventName, ed.Description, ed.Location, ed.EventDate, 
+      ed.EventTime, ed.Urgency, ed.MaxVolunteers, ed.CurrentVolunteers,
+      GROUP_CONCAT(DISTINCT ers.SkillName) as RequiredSkills,
+      vh.HoursVolunteered, vh.ParticipationStatus
+    FROM VolunteerMatches vm
+    JOIN EventDetails ed ON vm.EventID = ed.EventID
+    LEFT JOIN EventRequiredSkill ers ON ed.EventID = ers.EventID
+    LEFT JOIN VolunteerHistory vh ON vm.EventID = vh.EventID AND vm.VolunteerID = vh.VolunteerID
+    WHERE vm.VolunteerID = ?
+    GROUP BY vm.MatchID, ed.EventID, vh.HoursVolunteered, vh.ParticipationStatus
+    ORDER BY 
+      CASE 
+        WHEN vm.MatchStatus = 'pending' THEN 1
+        WHEN vm.MatchStatus = 'confirmed' AND ed.EventDate >= CURDATE() THEN 2
+        WHEN vm.MatchStatus = 'confirmed' AND ed.EventDate < CURDATE() THEN 3
+        WHEN vm.MatchStatus = 'completed' THEN 4
+        ELSE 5
+      END,
+      ed.EventDate ASC
+  `;
+  
+  pool.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error("Error fetching volunteer assignments:", err);
+      sendJsonResponse(res, 500, { success: false, error: "Internal server error" });
+      return;
+    }
+    
+    const assignments = results.map(assignment => ({
+      ...assignment,
+      RequiredSkills: assignment.RequiredSkills ? assignment.RequiredSkills.split(',') : []
+    }));
+    
+    sendJsonResponse(res, 200, { success: true, assignments });
+  });
+};
+
 // Get matched events for volunteer
 const getMatchedEvents = (req, res, userId) => {
   const query = `
@@ -245,6 +302,101 @@ const getMatchedEvents = (req, res, userId) => {
     
     sendJsonResponse(res, 200, { success: true, events: results });
   });
+};
+
+// Submit attendance after event completion
+const submitAttendance = async (req, res) => {
+  try {
+    const data = await parseRequestBody(req);
+    const { MatchID, VolunteerID, EventID, HoursVolunteered, ParticipationDate, Feedback } = data;
+    
+    // Validate hours
+    if (!HoursVolunteered || HoursVolunteered <= 0) {
+      sendJsonResponse(res, 400, { success: false, error: "Invalid hours volunteered" });
+      return;
+    }
+    
+    // Check if attendance already submitted
+    const checkQuery = 'SELECT HistoryID FROM VolunteerHistory WHERE VolunteerID = ? AND EventID = ?';
+    pool.query(checkQuery, [VolunteerID, EventID], (checkErr, existing) => {
+      if (checkErr) {
+        console.error("Error checking existing attendance:", checkErr);
+        sendJsonResponse(res, 500, { success: false, error: "Internal server error" });
+        return;
+      }
+      
+      if (existing.length > 0) {
+        sendJsonResponse(res, 400, { success: false, error: "Attendance already submitted for this event" });
+        return;
+      }
+      
+      // Insert into VolunteerHistory
+      const historyQuery = `
+        INSERT INTO VolunteerHistory 
+        (VolunteerID, EventID, ParticipationStatus, HoursVolunteered, ParticipationDate)
+        VALUES (?, ?, 'attended', ?, ?)
+      `;
+      
+      pool.query(historyQuery, [VolunteerID, EventID, HoursVolunteered, ParticipationDate], (histErr, histResult) => {
+        if (histErr) {
+          console.error("Error creating history record:", histErr);
+          sendJsonResponse(res, 500, { success: false, error: "Failed to record attendance" });
+          return;
+        }
+        
+        // Update match status to 'completed'
+        const updateMatchQuery = 'UPDATE VolunteerMatches SET MatchStatus = "completed" WHERE MatchID = ?';
+        pool.query(updateMatchQuery, [MatchID], (matchErr) => {
+          if (matchErr) {
+            console.error("Error updating match status:", matchErr);
+          }
+          
+          // Update CurrentVolunteers count
+          const updateCountQuery = `
+            UPDATE EventDetails 
+            SET CurrentVolunteers = (
+              SELECT COUNT(DISTINCT vm.VolunteerID) 
+              FROM VolunteerMatches vm 
+              WHERE vm.EventID = ? AND vm.MatchStatus IN ('pending', 'confirmed')
+            )
+            WHERE EventID = ?
+          `;
+          
+          pool.query(updateCountQuery, [EventID, EventID], (countErr) => {
+            if (countErr) {
+              console.error("Error updating volunteer count:", countErr);
+            }
+            
+            // Send success response immediately
+            sendJsonResponse(res, 200, { 
+              success: true, 
+              message: "Attendance recorded successfully",
+              historyID: histResult.insertId
+            });
+            
+            // Create notification for admin (non-blocking, run after response)
+            const notifQuery = `
+              INSERT INTO Notifications (UserID, Subject, Message, NotificationType)
+              SELECT CreatedBy, 
+                'Volunteer Attendance Submitted', 
+                CONCAT('A volunteer has submitted attendance for ', ed.EventName, ' with ', ?, ' hours.'),
+                'attendance'
+              FROM EventDetails ed WHERE ed.EventID = ?
+            `;
+            
+            pool.query(notifQuery, [HoursVolunteered, EventID], (notifErr) => {
+              if (notifErr) {
+                console.error("Error creating notification:", notifErr);
+              }
+            });
+          });
+        });
+      });
+    });
+  } catch (error) {
+    console.error('Error in submitAttendance:', error);
+    sendJsonResponse(res, 500, { success: false, error: "Server error" });
+  }
 };
 
 // Get available events with skill matching for specific volunteer
@@ -292,5 +444,7 @@ module.exports = {
   getRecentEvents,
   getUpcomingEvents,
   getMatchedEvents,
-  getAvailableEventsWithMatching
+  getAvailableEventsWithMatching,
+  getMyAssignments,
+  submitAttendance
 };

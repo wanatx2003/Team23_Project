@@ -16,6 +16,7 @@ import TopBar from "./components/layout/TopBar";
 import LandingPage from "./components/landing/LandingPage";
 import VolunteerDashboard from "./components/volunteer/VolunteerDashboard";
 import EventsList from "./components/volunteer/EventsList";
+import MyAssignments from "./components/volunteers/MyAssignments";
 import AdminReports from "./components/admin/AdminReports";
 
 // Import API service
@@ -111,10 +112,13 @@ function App() {
             onNavigateToEvents={() => setCurrentPage("events")}
             onNavigateToHistory={() => setCurrentPage("history")}
             onNavigateToNotifications={() => setCurrentPage("notifications")}
+            onNavigateToAssignments={() => setCurrentPage("assignments")}
           />
         );
       case "profile":
         return <UserProfile userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
+      case "assignments":
+        return <MyAssignments userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
       case "events":
         return <EventsList userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
       case "eventManagement":
@@ -148,6 +152,7 @@ function App() {
         navigateToMatching={() => setCurrentPage("matching")}
         navigateToHistory={() => setCurrentPage("history")}
         navigateToNotifications={() => setCurrentPage("notifications")}
+        navigateToAssignments={() => setCurrentPage("assignments")}
         navigateToLogin={() => setCurrentPage("login")}
         navigateToRegister={() => setCurrentPage("register")}
         navigateToLanding={() => setCurrentPage("landing")}

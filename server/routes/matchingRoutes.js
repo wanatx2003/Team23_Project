@@ -102,7 +102,22 @@ const createVolunteerMatch = async (req, res) => {
           }
         });
         
-        sendJsonResponse(res, 200, { success: true, message: "Volunteer matched successfully" });
+        // Update CurrentVolunteers count for the event
+        const updateCountQuery = `
+          UPDATE EventDetails \n          SET CurrentVolunteers = (
+            SELECT COUNT(DISTINCT vm.VolunteerID) 
+            FROM VolunteerMatches vm 
+            WHERE vm.EventID = ? AND vm.MatchStatus IN ('pending', 'confirmed')
+          )
+          WHERE EventID = ?
+        `;
+        
+        pool.query(updateCountQuery, [EventID, EventID], (updateErr) => {
+          if (updateErr) {
+            console.error("Error updating volunteer count:", updateErr);
+          }
+          sendJsonResponse(res, 200, { success: true, message: "Volunteer matched successfully" });
+        });
       });
     });
   } catch (error) {

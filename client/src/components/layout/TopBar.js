@@ -10,6 +10,7 @@ const TopBar = ({
   navigateToMatching,
   navigateToHistory,
   navigateToNotifications,
+  navigateToAssignments,
   navigateToLogin,
   navigateToRegister,
   navigateToLanding,
@@ -75,15 +76,27 @@ const TopBar = ({
           {isLoggedIn && userData && (
             <>
               {!isAdmin && (
-                <button 
-                  onClick={navigateToEvents} 
-                  className="nav-button"
-                  onMouseEnter={() => setHoveredButton('events')}
-                  onMouseLeave={() => setHoveredButton(null)}
-                  style={hoveredButton === 'events' ? glowEffect : {}}
-                >
-                  Browse Events
-                </button>
+                <>
+                  <button 
+                    onClick={navigateToEvents} 
+                    className="nav-button"
+                    onMouseEnter={() => setHoveredButton('events')}
+                    onMouseLeave={() => setHoveredButton(null)}
+                    style={hoveredButton === 'events' ? glowEffect : {}}
+                  >
+                    Browse Events
+                  </button>
+
+                  <button 
+                    onClick={navigateToAssignments} 
+                    className="nav-button"
+                    onMouseEnter={() => setHoveredButton('assignments')}
+                    onMouseLeave={() => setHoveredButton(null)}
+                    style={hoveredButton === 'assignments' ? glowEffect : {}}
+                  >
+                    My Assignments
+                  </button>
+                </>
               )}
               
               <button 

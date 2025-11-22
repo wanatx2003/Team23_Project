@@ -83,7 +83,23 @@ const addVolunteerHistory = async (req, res) => {
         return;
       }
       
-      sendJsonResponse(res, 200, { success: true, historyID: result.insertId, message: "History record added successfully" });
+      // Update CurrentVolunteers count for the event
+      const updateCountQuery = `
+        UPDATE EventDetails 
+        SET CurrentVolunteers = (
+          SELECT COUNT(DISTINCT vh.VolunteerID) 
+          FROM VolunteerHistory vh 
+          WHERE vh.EventID = ? AND vh.ParticipationStatus IN ('registered', 'attended', 'confirmed')
+        )
+        WHERE EventID = ?
+      `;
+      
+      pool.query(updateCountQuery, [EventID, EventID], (updateErr) => {
+        if (updateErr) {
+          console.error("Error updating volunteer count:", updateErr);
+        }
+        sendJsonResponse(res, 200, { success: true, historyID: result.insertId, message: "History record added successfully" });
+      });
     });
   } catch (error) {
     console.error('Error in addVolunteerHistory:', error);
@@ -106,7 +122,31 @@ const updateVolunteerHistory = async (req, res) => {
         return;
       }
       
-      sendJsonResponse(res, 200, { success: true, message: "History record updated successfully" });
+      // Get EventID for this history record to update count
+      pool.query('SELECT EventID FROM VolunteerHistory WHERE HistoryID = ?', [HistoryID], (getErr, historyResult) => {
+        if (!getErr && historyResult.length > 0) {
+          const eventId = historyResult[0].EventID;
+          
+          // Update CurrentVolunteers count
+          const updateCountQuery = `
+            UPDATE EventDetails 
+            SET CurrentVolunteers = (
+              SELECT COUNT(DISTINCT vh.VolunteerID) 
+              FROM VolunteerHistory vh 
+              WHERE vh.EventID = ? AND vh.ParticipationStatus IN ('registered', 'attended', 'confirmed')
+            )
+            WHERE EventID = ?
+          `;
+          
+          pool.query(updateCountQuery, [eventId, eventId], (updateErr) => {
+            if (updateErr) {
+              console.error("Error updating volunteer count:", updateErr);
+            }
+          });
+        }
+        
+        sendJsonResponse(res, 200, { success: true, message: "History record updated successfully" });
+      });
     });
   } catch (error) {
     console.error('Error in updateVolunteerHistory:', error);

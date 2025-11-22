@@ -212,7 +212,24 @@ const createVolunteerMatch = async (req, res) => {
         sendJsonResponse(res, 500, { success: false, error: "Failed to create match" });
         return;
       }
-      sendJsonResponse(res, 200, { success: true, message: "Volunteer matched successfully" });
+      
+      // Update CurrentVolunteers count
+      const updateQuery = `
+        UPDATE EventDetails 
+        SET CurrentVolunteers = (
+          SELECT COUNT(DISTINCT vm.VolunteerID) 
+          FROM VolunteerMatches vm 
+          WHERE vm.EventID = ? AND vm.MatchStatus IN ('pending', 'confirmed')
+        )
+        WHERE EventID = ?
+      `;
+      
+      pool.query(updateQuery, [EventID, EventID], (updateErr) => {
+        if (updateErr) {
+          console.error("Error updating volunteer count:", updateErr);
+        }
+        sendJsonResponse(res, 200, { success: true, message: "Volunteer matched successfully" });
+      });
     });
   } catch (error) {
     console.error('Error in createVolunteerMatch:', error);
@@ -301,7 +318,23 @@ const createVolunteerRequest = async (req, res) => {
             }
           });
           
-          sendJsonResponse(res, 200, { success: true, message: "Volunteer request sent successfully" });
+          // Update CurrentVolunteers count
+          const updateCountQuery = `
+            UPDATE EventDetails 
+            SET CurrentVolunteers = (
+              SELECT COUNT(DISTINCT vm.VolunteerID) 
+              FROM VolunteerMatches vm 
+              WHERE vm.EventID = ? AND vm.MatchStatus IN ('pending', 'confirmed')
+            )
+            WHERE EventID = ?
+          `;
+          
+          pool.query(updateCountQuery, [EventID, EventID], (updateErr) => {
+            if (updateErr) {
+              console.error("Error updating volunteer count:", updateErr);
+            }
+            sendJsonResponse(res, 200, { success: true, message: "Volunteer request sent successfully" });
+          });
         });
       }
     );

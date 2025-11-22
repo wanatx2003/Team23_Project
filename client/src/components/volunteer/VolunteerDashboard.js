@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../../styles/volunteer/VolunteerDashboard.css';
 
-const VolunteerDashboard = ({ userData, onNavigateToProfile, onNavigateToEvents, onNavigateToHistory, onNavigateToNotifications }) => {
+const VolunteerDashboard = ({ userData, onNavigateToProfile, onNavigateToEvents, onNavigateToHistory, onNavigateToNotifications, onNavigateToAssignments }) => {
   const [stats, setStats] = useState({
     upcomingEvents: 0,
     completedEvents: 0,
@@ -159,6 +159,16 @@ const VolunteerDashboard = ({ userData, onNavigateToProfile, onNavigateToEvents,
       <div className="dashboard-section">
         <h2>Quick Actions</h2>
         <div className="navigation-cards">
+          <div className="nav-card" onClick={onNavigateToAssignments}>
+            <div className="nav-card-icon">📝</div>
+            <div className="nav-card-content">
+              <h3>My Assignments</h3>
+              <p>View and manage your volunteer assignments</p>
+              <span className="nav-card-count">{matchedEvents.length} active</span>
+            </div>
+            <div className="nav-card-arrow">→</div>
+          </div>
+
           <div className="nav-card" onClick={onNavigateToEvents}>
             <div className="nav-card-icon">🎯</div>
             <div className="nav-card-content">

@@ -202,10 +202,173 @@ CREATE TABLE Notifications (
   UserID INT NOT NULL,
   Subject VARCHAR(255) NOT NULL,
   Message TEXT NOT NULL,
-  NotificationType ENUM('assignment','reminder','update','cancellation') NOT NULL,
+  NotificationType ENUM('assignment','reminder','update','cancellation','attendance') NOT NULL,
   IsRead TINYINT(1) NOT NULL DEFAULT 0,
   CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (NotificationID),
   KEY idx_user_read (UserID, IsRead),
   CONSTRAINT fk_notifications_user FOREIGN KEY (UserID) REFERENCES UserCredentials(UserID) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================
+-- TRIGGERS FOR DATA INTEGRITY AND AUTOMATION
+-- ============================================
+
+-- ----------------------------------------------------------------
+-- TRIGGER 1: Auto-update CurrentVolunteers count when VolunteerMatches changes
+-- This ensures EventDetails.CurrentVolunteers stays synchronized with actual matches
+-- ----------------------------------------------------------------
+
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS update_current_volunteers_after_match_insert$$
+CREATE TRIGGER update_current_volunteers_after_match_insert
+AFTER INSERT ON VolunteerMatches
+FOR EACH ROW
+BEGIN
+  -- Update the CurrentVolunteers count for the event
+  UPDATE EventDetails
+  SET CurrentVolunteers = (
+    SELECT COUNT(DISTINCT VolunteerID)
+    FROM VolunteerMatches
+    WHERE EventID = NEW.EventID 
+      AND MatchStatus IN ('pending', 'confirmed')
+  )
+  WHERE EventID = NEW.EventID;
+END$$
+
+DROP TRIGGER IF EXISTS update_current_volunteers_after_match_update$$
+CREATE TRIGGER update_current_volunteers_after_match_update
+AFTER UPDATE ON VolunteerMatches
+FOR EACH ROW
+BEGIN
+  -- Update count when match status changes
+  UPDATE EventDetails
+  SET CurrentVolunteers = (
+    SELECT COUNT(DISTINCT VolunteerID)
+    FROM VolunteerMatches
+    WHERE EventID = NEW.EventID 
+      AND MatchStatus IN ('pending', 'confirmed')
+  )
+  WHERE EventID = NEW.EventID;
+  
+  -- Also update old event if EventID changed (rare but possible)
+  IF OLD.EventID != NEW.EventID THEN
+    UPDATE EventDetails
+    SET CurrentVolunteers = (
+      SELECT COUNT(DISTINCT VolunteerID)
+      FROM VolunteerMatches
+      WHERE EventID = OLD.EventID 
+        AND MatchStatus IN ('pending', 'confirmed')
+    )
+    WHERE EventID = OLD.EventID;
+  END IF;
+END$$
+
+DROP TRIGGER IF EXISTS update_current_volunteers_after_match_delete$$
+CREATE TRIGGER update_current_volunteers_after_match_delete
+AFTER DELETE ON VolunteerMatches
+FOR EACH ROW
+BEGIN
+  -- Update count when match is deleted
+  UPDATE EventDetails
+  SET CurrentVolunteers = (
+    SELECT COUNT(DISTINCT VolunteerID)
+    FROM VolunteerMatches
+    WHERE EventID = OLD.EventID 
+      AND MatchStatus IN ('pending', 'confirmed')
+  )
+  WHERE EventID = OLD.EventID;
+END$$
+
+-- ----------------------------------------------------------------
+-- TRIGGER 2: Auto-create notification when volunteer is matched to event
+-- This ensures volunteers are immediately notified of new assignments
+-- ----------------------------------------------------------------
+
+DROP TRIGGER IF EXISTS notify_volunteer_on_match$$
+CREATE TRIGGER notify_volunteer_on_match
+AFTER INSERT ON VolunteerMatches
+FOR EACH ROW
+BEGIN
+  DECLARE event_name VARCHAR(100);
+  DECLARE event_date DATE;
+  DECLARE notification_message TEXT;
+  
+  -- Get event details
+  SELECT EventName, EventDate INTO event_name, event_date
+  FROM EventDetails
+  WHERE EventID = NEW.EventID;
+  
+  -- Create notification message
+  SET notification_message = CONCAT(
+    'You have been matched to the event "', event_name, 
+    '" scheduled for ', DATE_FORMAT(event_date, '%M %d, %Y'),
+    '. Please check your dashboard for more details and confirm your participation.'
+  );
+  
+  -- Insert notification for the volunteer
+  INSERT INTO Notifications (UserID, Subject, Message, NotificationType, IsRead, CreatedAt)
+  VALUES (
+    NEW.VolunteerID,
+    'New Event Assignment',
+    notification_message,
+    'assignment',
+    0,
+    NOW()
+  );
+END$$
+
+-- ----------------------------------------------------------------
+-- TRIGGER 3 (BONUS): Prevent overbooking - Check MaxVolunteers limit
+-- This ensures events don't exceed their volunteer capacity
+-- ----------------------------------------------------------------
+
+DROP TRIGGER IF EXISTS prevent_event_overbooking$$
+CREATE TRIGGER prevent_event_overbooking
+BEFORE INSERT ON VolunteerMatches
+FOR EACH ROW
+BEGIN
+  DECLARE max_vol INT;
+  DECLARE current_vol INT;
+  DECLARE event_name VARCHAR(100);
+  
+  -- Get event capacity
+  SELECT MaxVolunteers, CurrentVolunteers, EventName 
+  INTO max_vol, current_vol, event_name
+  FROM EventDetails
+  WHERE EventID = NEW.EventID;
+  
+  -- Check if event has capacity limit and if it's reached
+  IF max_vol IS NOT NULL AND current_vol >= max_vol THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT = 'Cannot match volunteer: Event has reached maximum capacity';
+  END IF;
+END$$
+
+-- ----------------------------------------------------------------
+-- TRIGGER 4 (BONUS): Auto-update EventStatus based on date and volunteers
+-- This automatically manages event lifecycle
+-- ----------------------------------------------------------------
+
+DROP TRIGGER IF EXISTS auto_update_event_status$$
+CREATE TRIGGER auto_update_event_status
+BEFORE UPDATE ON EventDetails
+FOR EACH ROW
+BEGIN
+  -- Auto-complete past events that are still in progress
+  IF NEW.EventDate < CURDATE() AND NEW.EventStatus = 'in_progress' THEN
+    SET NEW.EventStatus = 'completed';
+  END IF;
+  
+  -- Auto-publish events with volunteers that are in draft
+  IF NEW.EventStatus = 'draft' AND NEW.CurrentVolunteers > 0 THEN
+    SET NEW.EventStatus = 'published';
+  END IF;
+END$$
+
+DELIMITER ;
+
+-- ============================================
+-- END OF TRIGGERS
+-- ============================================

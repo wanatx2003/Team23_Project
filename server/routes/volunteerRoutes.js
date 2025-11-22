@@ -219,7 +219,7 @@ const getUpcomingEvents = (req, res, userId) => {
   const query = `
     SELECT 
       ed.EventID, ed.EventName, ed.Description, ed.Location, ed.EventDate, 
-      ed.EventTime, ed.Urgency, vm.MatchStatus
+      ed.StartTime, ed.EndTime, ed.Urgency, vm.MatchStatus
     FROM VolunteerMatches vm
     JOIN EventDetails ed ON vm.EventID = ed.EventID
     WHERE vm.VolunteerID = ? AND vm.MatchStatus = 'confirmed' AND ed.EventDate >= CURDATE()
@@ -244,7 +244,7 @@ const getMyAssignments = (req, res, userId) => {
     SELECT 
       vm.MatchID, vm.MatchStatus, vm.RequestedAt,
       ed.EventID, ed.EventName, ed.Description, ed.Location, ed.EventDate, 
-      ed.EventTime, ed.Urgency, ed.MaxVolunteers, ed.CurrentVolunteers,
+      ed.StartTime, ed.EndTime, ed.Urgency, ed.MaxVolunteers, ed.CurrentVolunteers,
       GROUP_CONCAT(DISTINCT ers.SkillName) as RequiredSkills,
       vh.HoursVolunteered, vh.ParticipationStatus
     FROM VolunteerMatches vm
@@ -285,7 +285,7 @@ const getMatchedEvents = (req, res, userId) => {
   const query = `
     SELECT 
       ed.EventID, ed.EventName, ed.Description, ed.Location, ed.EventDate, 
-      ed.EventTime, ed.Urgency, vm.MatchStatus, vm.RequestedAt
+      ed.StartTime, ed.EndTime, ed.Urgency, vm.MatchStatus, vm.RequestedAt
     FROM VolunteerMatches vm
     JOIN EventDetails ed ON vm.EventID = ed.EventID
     WHERE vm.VolunteerID = ? AND vm.MatchStatus IN ('pending', 'confirmed') 
@@ -404,7 +404,7 @@ const getAvailableEventsWithMatching = (req, res, userId) => {
   const query = `
     SELECT 
       ed.EventID, ed.EventName, ed.Description, ed.Location, ed.Urgency,
-      ed.EventDate, ed.EventTime, ed.MaxVolunteers, ed.CurrentVolunteers,
+      ed.EventDate, ed.StartTime, ed.EndTime, ed.MaxVolunteers, ed.CurrentVolunteers,
       GROUP_CONCAT(ers.SkillName) as RequiredSkills,
       (SELECT COUNT(*) FROM VolunteerMatches vm WHERE vm.EventID = ed.EventID AND vm.VolunteerID = ?) as AlreadyRequested
     FROM EventDetails ed

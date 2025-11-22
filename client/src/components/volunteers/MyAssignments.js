@@ -70,7 +70,13 @@ const MyAssignments = ({ userData, navigateToHome }) => {
     setShowAttendanceModal(true);
     
     // Calculate default hours based on event time if available
-    if (assignment.EventTime) {
+    if (assignment.StartTime && assignment.EndTime) {
+      // Calculate hours between start and end time
+      const start = new Date(`2000-01-01T${assignment.StartTime}`);
+      const end = new Date(`2000-01-01T${assignment.EndTime}`);
+      const hours = (end - start) / (1000 * 60 * 60);
+      setAttendanceData({ hoursWorked: hours.toString(), feedback: '' });
+    } else {
       // Default to 3 hours if no specific time frame
       setAttendanceData({ hoursWorked: '3', feedback: '' });
     }
@@ -154,12 +160,21 @@ const MyAssignments = ({ userData, navigateToHome }) => {
   };
 
   const formatTime = (timeString) => {
-    if (!timeString) return 'Time TBD';
-    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+    if (!timeString) return null;
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  const formatTimeRange = (startTime, endTime) => {
+    if (!startTime && !endTime) return 'Time TBD';
+    if (startTime && endTime) {
+      return `${formatTime(startTime)} - ${formatTime(endTime)}`;
+    }
+    if (startTime) return `Starts at ${formatTime(startTime)}`;
+    return `Ends at ${formatTime(endTime)}`;
   };
 
   const isPastEvent = (eventDate) => {
@@ -250,7 +265,7 @@ const MyAssignments = ({ userData, navigateToHome }) => {
                   <span className="detail-icon">🕒</span>
                   <div>
                     <strong>Time:</strong>
-                    <p>{formatTime(assignment.EventTime)}</p>
+                    <p>{formatTimeRange(assignment.StartTime, assignment.EndTime)}</p>
                   </div>
                 </div>
 

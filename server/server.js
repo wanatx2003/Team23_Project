@@ -73,6 +73,9 @@ const server = http.createServer((req, res) => {
   } else if (requestUrl === '/api/volunteer/profiles' && method === 'GET') {
     const volunteerRoutes = require('./routes/volunteerRoutes');
     volunteerRoutes.getAllVolunteerProfiles(req, res);
+  } else if (requestUrl === '/api/volunteer/match' && method === 'POST') {
+    const volunteerRoutes = require('./routes/volunteerRoutes');
+    volunteerRoutes.createVolunteerMatch(req, res);
   } else if (requestUrl.startsWith('/api/volunteer/match/') && method === 'PUT') {
     const matchId = requestUrl.split('/')[4];
     const volunteerRoutes = require('./routes/volunteerRoutes');
@@ -93,7 +96,7 @@ const server = http.createServer((req, res) => {
   
   // Notification routes
   else if (requestUrl === '/api/notifications' && method === 'POST') {
-    notificationRoutes.createNotification(req, res);
+    notificationRoutes.createNotificationEndpoint(req, res);
   } else if (requestUrl.startsWith('/api/notifications/unread/') && method === 'GET') {
     const userId = requestUrl.split('/').pop();
     notificationRoutes.getUnreadCount(req, res, userId);

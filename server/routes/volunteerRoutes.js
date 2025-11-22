@@ -6,7 +6,7 @@ const getAllVolunteerProfiles = (req, res) => {
   const query = `
     SELECT 
       uc.UserID, uc.FirstName, uc.LastName, uc.Email,
-      up.FullName, up.City, up.StateCode,
+      up.FullName, up.City, up.StateCode, up.Zipcode,
       GROUP_CONCAT(DISTINCT us.SkillName) as skills,
       GROUP_CONCAT(DISTINCT upr.PreferenceText) as preferences
     FROM UserCredentials uc
@@ -25,15 +25,94 @@ const getAllVolunteerProfiles = (req, res) => {
       return;
     }
     
-    // Parse skills and preferences into arrays
-    const volunteers = results.map(volunteer => ({
-      ...volunteer,
-      skills: volunteer.skills ? volunteer.skills.split(',') : [],
-      preferences: volunteer.preferences ? volunteer.preferences.split(',') : []
-    }));
-    
-    sendJsonResponse(res, 200, { success: true, volunteers });
+    // Get availability for each volunteer
+    const availabilityQuery = 'SELECT UserID, DayOfWeek, StartTime, EndTime FROM UserAvailability';
+    pool.query(availabilityQuery, (availErr, availResults) => {
+      if (availErr) {
+        console.error("Error fetching availability:", availErr);
+      }
+      
+      // Group availability by UserID
+      const availabilityMap = {};
+      if (availResults) {
+        availResults.forEach(avail => {
+          if (!availabilityMap[avail.UserID]) {
+            availabilityMap[avail.UserID] = [];
+          }
+          availabilityMap[avail.UserID].push({
+            DayOfWeek: avail.DayOfWeek,
+            StartTime: avail.StartTime,
+            EndTime: avail.EndTime
+          });
+        });
+      }
+      
+      // Parse skills and preferences into arrays and add availability
+      const volunteers = results.map(volunteer => ({
+        ...volunteer,
+        skills: volunteer.skills ? volunteer.skills.split(',') : [],
+        preferences: volunteer.preferences ? volunteer.preferences.split(',') : [],
+        availability: availabilityMap[volunteer.UserID] || []
+      }));
+      
+      sendJsonResponse(res, 200, { success: true, volunteers });
+    });
   });
+};
+
+// Create volunteer match (for admin matching volunteers to events)
+const createVolunteerMatch = async (req, res) => {
+  try {
+    const data = await parseRequestBody(req);
+    const { VolunteerID, EventID } = data;
+    
+    if (!VolunteerID || !EventID) {
+      sendJsonResponse(res, 400, { success: false, error: 'VolunteerID and EventID are required' });
+      return;
+    }
+    
+    // Check if match already exists
+    const checkQuery = 'SELECT MatchID FROM VolunteerMatches WHERE VolunteerID = ? AND EventID = ?';
+    pool.query(checkQuery, [VolunteerID, EventID], (err, existing) => {
+      if (err) {
+        console.error("Error checking existing match:", err);
+        sendJsonResponse(res, 500, { success: false, error: "Internal server error" });
+        return;
+      }
+      
+      if (existing.length > 0) {
+        sendJsonResponse(res, 400, { success: false, error: 'Volunteer is already matched to this event' });
+        return;
+      }
+      
+      // Create the match
+      const insertQuery = 'INSERT INTO VolunteerMatches (VolunteerID, EventID, MatchStatus) VALUES (?, ?, "pending")';
+      pool.query(insertQuery, [VolunteerID, EventID], (insertErr, result) => {
+        if (insertErr) {
+          console.error("Error creating match:", insertErr);
+          sendJsonResponse(res, 500, { success: false, error: "Failed to create match" });
+          return;
+        }
+        
+        // Update event volunteer count
+        const updateQuery = 'UPDATE EventDetails SET CurrentVolunteers = CurrentVolunteers + 1 WHERE EventID = ?';
+        pool.query(updateQuery, [EventID], (updateErr) => {
+          if (updateErr) {
+            console.error("Error updating volunteer count:", updateErr);
+          }
+          
+          sendJsonResponse(res, 200, { 
+            success: true, 
+            matchID: result.insertId,
+            message: 'Volunteer matched successfully' 
+          });
+        });
+      });
+    });
+  } catch (error) {
+    console.error('Error in createVolunteerMatch:', error);
+    sendJsonResponse(res, 500, { success: false, error: "Server error" });
+  }
 };
 
 // Update volunteer match status
@@ -207,6 +286,7 @@ const getAvailableEventsWithMatching = (req, res, userId) => {
 
 module.exports = {
   getAllVolunteerProfiles,
+  createVolunteerMatch,
   updateMatchStatus,
   getVolunteerStats,
   getRecentEvents,

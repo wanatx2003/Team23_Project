@@ -39,10 +39,12 @@ const VolunteerMatching = () => {
       const response = await fetch('/api/volunteer/profiles');
       const data = await response.json();
       if (data.success) {
+        // Store all volunteers - we'll calculate match scores when event is selected
         setVolunteers(data.volunteers);
       }
     } catch (error) {
       console.error('Error fetching volunteers:', error);
+      setError('Failed to load volunteers');
     }
   };
 
@@ -65,26 +67,65 @@ const VolunteerMatching = () => {
     const alreadyMatched = matches.map(m => m.UserID);
     const eventSkills = event.RequiredSkills || [];
 
-    const suggested = volunteers
-      .filter(vol => !alreadyMatched.includes(vol.UserID))
-      .map(vol => {
-        const skillMatch = vol.skills ? vol.skills.filter(skill => 
-          eventSkills.includes(skill)
-        ).length : 0;
-        
-        const skillPercentage = eventSkills.length > 0 ? 
-          (skillMatch / eventSkills.length) * 100 : 0;
+    // Calculate match score for ALL volunteers (not just those with matching skills)
+    const allVolunteers = volunteers.map(vol => {
+      let matchScore = 0;
+      const scores = {
+        skills: 0,
+        location: 0,
+        availability: 0
+      };
+      
+      // 1. Skill matching (60% weight) - Most important
+      const volunteerSkills = vol.skills || [];
+      const matchingSkills = volunteerSkills.filter(skill => eventSkills.includes(skill));
+      if (eventSkills.length > 0) {
+        scores.skills = (matchingSkills.length / eventSkills.length) * 60;
+      } else {
+        // If no specific skills required, all volunteers get base score
+        scores.skills = 30;
+      }
+      
+      // 2. Location proximity (20% weight)
+      // Same state gets points
+      if (vol.StateCode && event.Location) {
+        if (event.Location.includes(vol.StateCode) || event.Location.includes(vol.City)) {
+          scores.location = 20;
+        } else {
+          scores.location = 5; // Some points for having location data
+        }
+      }
+      
+      // 3. Availability (20% weight)
+      if (vol.availability && vol.availability.length > 0) {
+        scores.availability = 20;
+      } else {
+        scores.availability = 5; // Some points for registering
+      }
+      
+      // Calculate total match score
+      matchScore = scores.skills + scores.location + scores.availability;
+      
+      return {
+        ...vol,
+        matchingSkills: matchingSkills,
+        matchScore: Math.round(matchScore),
+        scoreBreakdown: scores,
+        alreadyMatched: alreadyMatched.includes(vol.UserID)
+      };
+    });
 
-        return {
-          ...vol,
-          skillMatch,
-          skillPercentage,
-          matchScore: skillPercentage
-        };
-      })
-      .sort((a, b) => b.matchScore - a.matchScore);
+    // Sort by match score (highest first), but show unmatched volunteers first
+    const sortedVolunteers = allVolunteers.sort((a, b) => {
+      // Prioritize unmatched volunteers
+      if (a.alreadyMatched !== b.alreadyMatched) {
+        return a.alreadyMatched ? 1 : -1;
+      }
+      // Then sort by match score
+      return b.matchScore - a.matchScore;
+    });
 
-    setVolunteers(suggested);
+    setVolunteers(sortedVolunteers);
   };
 
   const handleMatchVolunteer = async (volunteerId) => {
@@ -259,28 +300,58 @@ const VolunteerMatching = () => {
           </div>
 
           <div className="suggested-volunteers">
-            <h2>Suggested Volunteers</h2>
+            <h2>All Available Volunteers ({volunteers.filter(v => !v.alreadyMatched).length} available)</h2>
             {volunteers.length > 0 ? (
               <div className="volunteers-list">
-                {volunteers.slice(0, 10).map(volunteer => (
-                  <div key={volunteer.UserID} className="volunteer-card">
+                {volunteers.map(volunteer => (
+                  <div 
+                    key={volunteer.UserID} 
+                    className={`volunteer-card ${volunteer.alreadyMatched ? 'already-matched' : ''}`}
+                  >
+                    {volunteer.alreadyMatched && (
+                      <div className="already-matched-banner">Already Matched to This Event</div>
+                    )}
+                    
                     <div className="volunteer-info">
-                      <h4>{volunteer.FullName || `${volunteer.FirstName} ${volunteer.LastName}`}</h4>
-                      <p>{volunteer.Email}</p>
-                      <p>{volunteer.City}, {volunteer.StateCode}</p>
-                      
-                      <div className="skills-match">
-                        <p><strong>Skills:</strong> {volunteer.skills?.join(', ') || 'No skills listed'}</p>
-                        <div className="match-score">
-                          <span>Match Score: </span>
-                          <span 
-                            style={{ color: getMatchScoreColor(volunteer.matchScore) }}
-                            className="score-value"
-                          >
-                            {Math.round(volunteer.matchScore)}%
-                          </span>
+                      <div className="volunteer-header">
+                        <h4>{volunteer.FullName || `${volunteer.FirstName} ${volunteer.LastName}`}</h4>
+                        <div className="match-score-badge" style={{ 
+                          backgroundColor: getMatchScoreColor(volunteer.matchScore),
+                          color: 'white',
+                          padding: '5px 10px',
+                          borderRadius: '20px',
+                          fontWeight: 'bold'
+                        }}>
+                          {volunteer.matchScore}% Match
                         </div>
                       </div>
+                      
+                      <p><strong>📧</strong> {volunteer.Email}</p>
+                      <p><strong>📍</strong> {volunteer.City}, {volunteer.StateCode}</p>
+                      
+                      <div className="skills-match">
+                        <p><strong>Skills:</strong></p>
+                        <div className="skills-tags">
+                          {volunteer.skills && volunteer.skills.length > 0 ? (
+                            volunteer.skills.map(skill => (
+                              <span 
+                                key={skill}
+                                className={`skill-tag ${volunteer.matchingSkills?.includes(skill) ? 'matching-skill' : 'other-skill'}`}
+                              >
+                                {skill} {volunteer.matchingSkills?.includes(skill) && '✓'}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="no-data">No skills listed</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {volunteer.matchingSkills && volunteer.matchingSkills.length > 0 && (
+                        <div className="matching-skills-highlight">
+                          <strong>✓ Matching Skills:</strong> {volunteer.matchingSkills.join(', ')}
+                        </div>
+                      )}
 
                       {volunteer.preferences && volunteer.preferences.length > 0 && (
                         <div className="preferences">
@@ -288,29 +359,47 @@ const VolunteerMatching = () => {
                         </div>
                       )}
 
-                      {volunteer.availability && volunteer.availability.length > 0 && (
+                      {volunteer.availability && volunteer.availability.length > 0 ? (
                         <div className="availability">
-                          <p><strong>Available:</strong> {volunteer.availability.map(a => 
+                          <p><strong>✓ Available:</strong> {volunteer.availability.map(a => 
                             `${a.DayOfWeek} ${a.StartTime}-${a.EndTime}`
                           ).join(', ')}</p>
                         </div>
+                      ) : (
+                        <div className="availability">
+                          <p><strong>⚠</strong> No availability set</p>
+                        </div>
                       )}
+                      
+                      <div className="match-score-details">
+                        <small>
+                          Skills: {Math.round(volunteer.scoreBreakdown?.skills || 0)}pts | 
+                          Location: {Math.round(volunteer.scoreBreakdown?.location || 0)}pts | 
+                          Availability: {Math.round(volunteer.scoreBreakdown?.availability || 0)}pts
+                        </small>
+                      </div>
                     </div>
                     
                     <div className="match-actions">
-                      <button 
-                        onClick={() => handleMatchVolunteer(volunteer.UserID)}
-                        disabled={loading}
-                        className="match-btn"
-                      >
-                        {loading ? 'Matching...' : 'Match'}
-                      </button>
+                      {!volunteer.alreadyMatched ? (
+                        <button 
+                          onClick={() => handleMatchVolunteer(volunteer.UserID)}
+                          disabled={loading}
+                          className="match-btn"
+                        >
+                          {loading ? 'Matching...' : 'Assign to Event'}
+                        </button>
+                      ) : (
+                        <button className="match-btn" disabled>
+                          Already Assigned
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p>No available volunteers found for this event.</p>
+              <p>No volunteers registered in the system yet.</p>
             )}
           </div>
         </div>

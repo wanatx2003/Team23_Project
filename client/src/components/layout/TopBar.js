@@ -22,6 +22,7 @@ const TopBar = ({
   const [isLogoHovered, setIsLogoHovered] = useState(false);
   const [hoveredButton, setHoveredButton] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [closeTimeout, setCloseTimeout] = useState(null);
 
   // Fetch unread notification count
   useEffect(() => {
@@ -31,6 +32,30 @@ const TopBar = ({
       return () => clearInterval(interval);
     }
   }, [isLoggedIn, userData]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimeout) {
+        clearTimeout(closeTimeout);
+      }
+    };
+  }, [closeTimeout]);
+
+  const handleDropdownEnter = () => {
+    if (closeTimeout) {
+      clearTimeout(closeTimeout);
+      setCloseTimeout(null);
+    }
+    setOpenDropdown('user');
+  };
+
+  const handleDropdownLeave = () => {
+    const timeout = setTimeout(() => {
+      setOpenDropdown(null);
+    }, 300); // 300ms delay before closing
+    setCloseTimeout(timeout);
+  };
 
   const fetchUnreadCount = async () => {
     try {
@@ -162,8 +187,8 @@ const TopBar = ({
 
               <div 
                 className="dropdown-container"
-                onMouseEnter={() => setOpenDropdown('user')}
-                onMouseLeave={() => setOpenDropdown(null)}
+                onMouseEnter={handleDropdownEnter}
+                onMouseLeave={handleDropdownLeave}
               >
                 <button className="user-menu-button">⚙️</button>
                 {openDropdown === 'user' && (

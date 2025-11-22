@@ -223,7 +223,7 @@
   top: calc(100% + 10px);
   right: 0;
   min-width: 220px;
-  background: rgba(45, 55, 72, 0.95);
+  background: rgba(45, 55, 72, 0.98);
   backdrop-filter: blur(20px);
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
@@ -232,36 +232,33 @@
   animation: slideDown 0.3s ease forwards;
   transform-origin: top right;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: auto;
+}
+
+/* Add padding to dropdown container for easier hover */
+.dropdown-container::before {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: -10px;
+  right: -10px;
+  height: 15px;
+  background: transparent;
 }
 
 /* Animation for dropdown appearance */
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: scaleY(0);
+    transform: translateY(-10px) scaleY(0.95);
   }
   to {
     opacity: 1;
-    transform: scaleY(1);
+    transform: translateY(0) scaleY(1);
   }
 }
 
-/* Animation for dropdown disappearance */
-@keyframes slideUp {
-  from {
-    opacity: 1;
-    transform: scaleY(1);
-  }
-  to {
-    opacity: 0;
-    transform: scaleY(0);
-  }
-}
-
-/* Apply closing animation when dropdown is being removed */
-.dropdown-container:not(:hover) .dropdown-menu {
-  animation: slideUp 0.6s ease forwards;
-}
+/* Animation for dropdown disappearance - removed to prevent quick closing */
 
 /* Dropdown item styling */
 .dropdown-item {

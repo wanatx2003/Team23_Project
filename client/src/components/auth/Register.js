@@ -3,14 +3,13 @@ import '../../styles/auth/Register.css';
 
 const Register = ({ onRegister, navigateToLogin }) => {
   const [formData, setFormData] = useState({
-    Username: '',
-    Password: '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
     confirmPassword: '',
-    FirstName: '',
-    LastName: '',
-    Email: '',
-    PhoneNumber: '',
-    Role: 'volunteer'
+    phoneNumber: '',
+    role: 'volunteer'
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -32,16 +31,15 @@ const Register = ({ onRegister, navigateToLogin }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.Username.trim()) newErrors.Username = 'Username is required';
-    if (!formData.Email.trim()) newErrors.Email = 'Email is required';
-    if (!formData.Email.includes('@')) newErrors.Email = 'Please enter a valid email';
-    if (!formData.Password) newErrors.Password = 'Password is required';
-    if (formData.Password.length < 6) newErrors.Password = 'Password must be at least 6 characters';
-    if (formData.Password !== formData.confirmPassword) {
+    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    if (!formData.email.includes('@')) newErrors.email = 'Please enter a valid email';
+    if (!formData.password) newErrors.password = 'Password is required';
+    if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+    if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
-    if (!formData.FirstName.trim()) newErrors.FirstName = 'First name is required';
-    if (!formData.LastName.trim()) newErrors.LastName = 'Last name is required';
+    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
+    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -75,82 +73,70 @@ const Register = ({ onRegister, navigateToLogin }) => {
           <form onSubmit={handleSubmit} className="register-form">
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="FirstName">First Name *</label>
+                <label htmlFor="firstName">First Name *</label>
                 <input
                   type="text"
-                  id="FirstName"
-                  name="FirstName"
-                  value={formData.FirstName}
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
                   onChange={handleChange}
                   placeholder="Enter your first name"
                 />
-                {errors.FirstName && <span className="error">{errors.FirstName}</span>}
+                {errors.firstName && <span className="error">{errors.firstName}</span>}
               </div>
               
               <div className="form-group">
-                <label htmlFor="LastName">Last Name *</label>
+                <label htmlFor="lastName">Last Name *</label>
                 <input
                   type="text"
-                  id="LastName"
-                  name="LastName"
-                  value={formData.LastName}
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
                   onChange={handleChange}
                   placeholder="Enter your last name"
                 />
-                {errors.LastName && <span className="error">{errors.LastName}</span>}
+                {errors.lastName && <span className="error">{errors.lastName}</span>}
               </div>
             </div>
 
             <div className="form-group">
-              <label htmlFor="Username">Username *</label>
-              <input
-                type="text"
-                id="Username"
-                name="Username"
-                value={formData.Username}
-                onChange={handleChange}
-                placeholder="Choose a username"
-              />
-              {errors.Username && <span className="error">{errors.Username}</span>}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="Email">Email Address *</label>
+              <label htmlFor="email">Email Address (Username) *</label>
               <input
                 type="email"
-                id="Email"
-                name="Email"
-                value={formData.Email}
+                id="email"
+                name="email"
+                value={formData.email}
                 onChange={handleChange}
                 placeholder="Enter your email address"
               />
-              {errors.Email && <span className="error">{errors.Email}</span>}
+              <small className="form-hint">Your email will be used as your username for logging in</small>
+              {errors.email && <span className="error">{errors.email}</span>}
             </div>
 
             <div className="form-group">
-              <label htmlFor="PhoneNumber">Phone Number</label>
+              <label htmlFor="phoneNumber">Phone Number</label>
               <input
                 type="tel"
-                id="PhoneNumber"
-                name="PhoneNumber"
-                value={formData.PhoneNumber}
+                id="phoneNumber"
+                name="phoneNumber"
+                value={formData.phoneNumber}
                 onChange={handleChange}
-                placeholder="Enter your phone number"
+                placeholder="Enter your phone number (optional)"
               />
             </div>
 
             <div className="form-row">
               <div className="form-group">
-                <label htmlFor="Password">Password *</label>
+                <label htmlFor="password">Password *</label>
                 <input
                   type="password"
-                  id="Password"
-                  name="Password"
-                  value={formData.Password}
+                  id="password"
+                  name="password"
+                  value={formData.password}
                   onChange={handleChange}
                   placeholder="Enter your password"
                 />
-                {errors.Password && <span className="error">{errors.Password}</span>}
+                {errors.password && <span className="error">{errors.password}</span>}
               </div>
               
               <div className="form-group">
@@ -168,11 +154,11 @@ const Register = ({ onRegister, navigateToLogin }) => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="Role">Account Type</label>
+              <label htmlFor="role">Account Type</label>
               <select
-                id="Role"
-                name="Role"
-                value={formData.Role}
+                id="role"
+                name="role"
+                value={formData.role}
                 onChange={handleChange}
               >
                 <option value="volunteer">Volunteer</option>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../../styles/volunteer/EventsList.css';
 
-const EventsList = ({ userData }) => {
+const EventsList = ({ userData, navigateToHome }) => {
   const [events, setEvents] = useState([]);
   const [filteredEvents, setFilteredEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -243,6 +243,10 @@ const EventsList = ({ userData }) => {
           </div>
         )}
       </div>
+
+      <button onClick={navigateToHome} className="btn-back">
+        Back to Home
+      </button>
     </div>
   );
 };

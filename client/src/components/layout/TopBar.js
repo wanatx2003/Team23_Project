@@ -14,7 +14,8 @@ const TopBar = ({
   navigateToRegister,
   navigateToLanding,
   navigateToHome,
-  navigateToEvents
+  navigateToEvents,
+  navigateToReports
 }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isLogoHovered, setIsLogoHovered] = useState(false);
@@ -115,6 +116,16 @@ const TopBar = ({
                     style={hoveredButton === 'matching' ? glowEffect : {}}
                   >
                     Match Volunteers
+                  </button>
+
+                  <button 
+                    onClick={navigateToReports} 
+                    className="nav-button admin-button"
+                    onMouseEnter={() => setHoveredButton('reports')}
+                    onMouseLeave={() => setHoveredButton(null)}
+                    style={hoveredButton === 'reports' ? glowEffect : {}}
+                  >
+                    Reports
                   </button>
                 </>
               )}

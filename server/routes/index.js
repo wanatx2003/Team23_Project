@@ -8,6 +8,7 @@ const { getAllEvents, createEvent, updateEvent, deleteEvent } = require('./event
 const { getVolunteerMatches, createVolunteerMatch, updateMatchStatus } = require('./matchingRoutes');
 const { getUserNotifications, markNotificationRead, getUnreadCount } = require('./notificationRoutes');
 const { getVolunteerHistory, getAllVolunteerHistory, addVolunteerHistory, updateVolunteerHistory } = require('./historyRoutes');
+const { getVolunteerParticipationReport, getEventSummaryReport, getVolunteerSummaryReport } = require('./volunteerReportRoutes');
 
 const handleRequest = async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
@@ -110,6 +111,19 @@ const handleRequest = async (req, res) => {
 
   if (pathname === '/api/volunteer-history' && method === 'PUT') {
     return updateVolunteerHistory(req, res);
+  }
+
+  // Reporting routes
+  if (pathname === '/api/reports/volunteer-participation' && method === 'GET') {
+    return getVolunteerParticipationReport(req, res);
+  }
+
+  if (pathname === '/api/reports/event-summary' && method === 'GET') {
+    return getEventSummaryReport(req, res);
+  }
+
+  if (pathname === '/api/reports/volunteer-summary' && method === 'GET') {
+    return getVolunteerSummaryReport(req, res);
   }
 
   // Health check route

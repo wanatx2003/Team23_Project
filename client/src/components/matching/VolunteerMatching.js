@@ -50,16 +50,30 @@ const VolunteerMatching = ({ userData, navigateToHome }) => {
   };
 
   const getFilteredMatches = () => {
+    let filtered = matches;
+    
     switch (filter) {
       case 'matched':
-        return matches.filter(match => match.MatchStatus !== 'unmatched');
+        filtered = matches.filter(match => 
+          match.MatchStatus !== 'unmatched' && match.MatchStatus !== null
+        );
+        break;
       case 'unmatched':
-        return matches.filter(match => match.MatchStatus === 'unmatched');
+        filtered = matches.filter(match => 
+          match.MatchStatus === 'unmatched' || match.MatchStatus === null
+        );
+        break;
       case 'skill-match':
-        return matches.filter(match => match.SkillMatch);
+        filtered = matches.filter(match => match.SkillMatch);
+        break;
+      case 'high-match':
+        filtered = matches.filter(match => match.SkillMatchPercentage >= 75);
+        break;
       default:
-        return matches;
+        filtered = matches;
     }
+    
+    return filtered;
   };
 
   if (loading) return <div className="loading">Loading volunteer matches...</div>;
@@ -77,8 +91,10 @@ const VolunteerMatching = ({ userData, navigateToHome }) => {
           <option value="all">All Matches</option>
           <option value="unmatched">Unmatched</option>
           <option value="matched">Already Matched</option>
-          <option value="skill-match">Skill Matches</option>
+          <option value="skill-match">Any Skill Matches</option>
+          <option value="high-match">High Skill Match (75%+)</option>
         </select>
+        <span className="match-count">{getFilteredMatches().length} matches found</span>
       </div>
 
       <div className="matches-list">
@@ -87,37 +103,87 @@ const VolunteerMatching = ({ userData, navigateToHome }) => {
         ) : (
           <div className="matches-grid">
             {getFilteredMatches().map((match, index) => (
-              <div key={index} className="match-card">
+              <div key={`${match.UserID}-${match.EventID}`} className="match-card">
                 <div className="volunteer-info">
                   <h3>{match.FullName || `${match.FirstName} ${match.LastName}`}</h3>
                   <p><strong>Email:</strong> {match.Email}</p>
                   <p><strong>Location:</strong> {match.City}, {match.StateCode}</p>
-                  <p><strong>Skills:</strong> {match.Skills?.join(', ') || 'None listed'}</p>
+                  <div className="skills-section">
+                    <p><strong>Volunteer Skills:</strong></p>
+                    <div className="skills-tags">
+                      {match.Skills && match.Skills.length > 0 ? (
+                        match.Skills.map(skill => (
+                          <span 
+                            key={skill} 
+                            className={`skill-tag ${match.MatchingSkills?.includes(skill) ? 'matching' : ''}`}
+                          >
+                            {skill}
+                            {match.MatchingSkills?.includes(skill) && ' ✓'}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="no-skills">No skills listed</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="event-info">
                   <h4>{match.EventName}</h4>
                   <p><strong>Date:</strong> {new Date(match.EventDate).toLocaleDateString()}</p>
-                  <p><strong>Urgency:</strong> {match.Urgency}</p>
-                  <p><strong>Required Skills:</strong> {match.RequiredSkills?.join(', ') || 'None'}</p>
+                  {match.EventTime && (
+                    <p><strong>Time:</strong> {match.EventTime}</p>
+                  )}
+                  <p><strong>Location:</strong> {match.Location}</p>
+                  <p><strong>Urgency:</strong> <span className={`urgency-${match.Urgency}`}>{match.Urgency}</span></p>
+                  <p><strong>Capacity:</strong> {match.CurrentVolunteers}/{match.MaxVolunteers || '∞'}</p>
+                  <div className="required-skills-section">
+                    <p><strong>Required Skills:</strong></p>
+                    <div className="skills-tags">
+                      {match.RequiredSkills && match.RequiredSkills.length > 0 ? (
+                        match.RequiredSkills.map(skill => (
+                          <span key={skill} className="skill-tag required">
+                            {skill}
+                          </span>
+                        ))
+                      ) : (
+                        <span>No specific skills required</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="match-status">
                   {match.SkillMatch && (
-                    <span className="skill-match-badge">Skill Match!</span>
+                    <div className="skill-match-indicator">
+                      <span className="skill-match-badge">
+                        {match.SkillMatchPercentage}% Skill Match
+                      </span>
+                      <div className="match-bar">
+                        <div 
+                          className="match-bar-fill" 
+                          style={{
+                            width: `${match.SkillMatchPercentage}%`,
+                            backgroundColor: match.SkillMatchPercentage >= 75 ? '#10B981' : 
+                                           match.SkillMatchPercentage >= 50 ? '#F59E0B' : '#EF4444'
+                          }}
+                        ></div>
+                      </div>
+                    </div>
                   )}
-                  <span className={`status-badge ${match.MatchStatus}`}>
-                    {match.MatchStatus}
+                  <span className={`status-badge status-${match.MatchStatus}`}>
+                    {match.MatchStatus === 'unmatched' ? 'Not Matched' : match.MatchStatus}
                   </span>
                 </div>
 
-                {match.MatchStatus === 'unmatched' && (
+                {(match.MatchStatus === 'unmatched' || !match.MatchStatus) && (
                   <div className="match-actions">
                     <button
                       onClick={() => handleMatch(match.UserID, match.EventID)}
                       className="btn-match"
+                      title={`Match ${match.FullName || match.FirstName} to ${match.EventName}`}
                     >
-                      Match Volunteer
+                      Match Volunteer to Event
                     </button>
                   </div>
                 )}

@@ -16,6 +16,7 @@ import TopBar from "./components/layout/TopBar";
 import LandingPage from "./components/landing/LandingPage";
 import VolunteerDashboard from "./components/volunteer/VolunteerDashboard";
 import EventsList from "./components/volunteer/EventsList";
+import AdminReports from "./components/admin/AdminReports";
 
 // Import API service
 import API from "./services/api";
@@ -113,17 +114,19 @@ function App() {
           />
         );
       case "profile":
-        return <UserProfile userData={userData} />;
+        return <UserProfile userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
       case "events":
-        return <EventsList userData={userData} />;
+        return <EventsList userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
       case "eventManagement":
-        return <EventManagement userData={userData} />;
+        return <EventManagement userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
       case "matching":
-        return <VolunteerMatching />;
+        return <VolunteerMatching userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
       case "notifications":
-        return <Notifications userData={userData} />;
+        return <Notifications userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
       case "history":
-        return <VolunteerHistory userData={userData} />;
+        return <VolunteerHistory userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
+      case "reports":
+        return <AdminReports navigateToHome={() => setCurrentPage("dashboard")} />;
       default:
         return (
           <LandingPage
@@ -150,6 +153,7 @@ function App() {
         navigateToLanding={() => setCurrentPage("landing")}
         navigateToHome={() => setCurrentPage("dashboard")}
         navigateToEvents={() => setCurrentPage("events")}
+        navigateToReports={() => setCurrentPage("reports")}
       />
 
       <div className={isLoggedIn ? "content-container" : ""}>

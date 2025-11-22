@@ -8,7 +8,7 @@ const getVolunteerMatches = (req, res) => {
       uc.UserID, uc.FirstName, uc.LastName, uc.Email,
       up.FullName, up.City, up.StateCode,
       GROUP_CONCAT(DISTINCT us.SkillName ORDER BY us.SkillName) as Skills,
-      ed.EventID, ed.EventName, ed.EventDate, ed.EventTime, ed.Urgency, ed.Location, ed.Description,
+      ed.EventID, ed.EventName, ed.EventDate, ed.StartTime, ed.EndTime, ed.Urgency, ed.Location, ed.Description,
       ed.MaxVolunteers, ed.CurrentVolunteers,
       GROUP_CONCAT(DISTINCT ers.SkillName ORDER BY ers.SkillName) as RequiredSkills,
       COALESCE(vm.MatchStatus, 'unmatched') as MatchStatus,
@@ -67,6 +67,13 @@ const createVolunteerMatch = async (req, res) => {
     const data = await parseRequestBody(req);
     const { VolunteerID, EventID, AdminID } = data;
     
+    // Validate required fields
+    if (!VolunteerID || !EventID) {
+      console.error("Missing required fields:", { VolunteerID, EventID });
+      sendJsonResponse(res, 400, { success: false, error: "VolunteerID and EventID are required" });
+      return;
+    }
+    
     // Check if match already exists
     const checkQuery = 'SELECT MatchID FROM VolunteerMatches WHERE VolunteerID = ? AND EventID = ?';
     pool.query(checkQuery, [VolunteerID, EventID], (err, existing) => {
@@ -86,7 +93,8 @@ const createVolunteerMatch = async (req, res) => {
       pool.query(query, [VolunteerID, EventID], (err, result) => {
         if (err) {
           console.error("Error creating volunteer match:", err);
-          sendJsonResponse(res, 500, { success: false, error: "Failed to create match" });
+          console.error("Error details:", err.message);
+          sendJsonResponse(res, 500, { success: false, error: "Failed to create match: " + err.message });
           return;
         }
         

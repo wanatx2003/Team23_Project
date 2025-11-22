@@ -120,6 +120,13 @@ const server = http.createServer((req, res) => {
     notificationRoutes.getUserNotifications(req, res, userId);
   }
   
+  // Admin routes
+  else if (requestUrl === '/api/admin/users' && method === 'GET') {
+    userRoutes.getAllUsers(req, res);
+  } else if (requestUrl === '/api/admin/users/status' && method === 'PUT') {
+    userRoutes.updateUserStatus(req, res);
+  }
+  
   // Report routes
   else if (requestUrl.startsWith('/api/volunteer-report') && method === 'GET') {
     const volunteerReportRoutes = require('./routes/volunteerReportRoutes');

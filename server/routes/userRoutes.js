@@ -209,9 +209,78 @@ const getAvailableSkills = (req, res) => {
   sendJsonResponse(res, 200, { success: true, skills });
 };
 
+// Get all users (Admin only)
+const getAllUsers = async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        uc.UserID,
+        uc.Username,
+        uc.Role,
+        uc.AccountStatus,
+        COALESCE(up.FullName, CONCAT(uc.FirstName, ' ', uc.LastName)) as FullName
+      FROM UserCredentials uc
+      LEFT JOIN UserProfile up ON uc.UserID = up.UserID
+      ORDER BY uc.AccountCreatedAt DESC
+    `;
+    
+    pool.query(query, (err, results) => {
+      if (err) {
+        console.error('Error fetching all users:', err);
+        sendJsonResponse(res, 500, { success: false, error: 'Internal server error' });
+        return;
+      }
+      
+      sendJsonResponse(res, 200, { success: true, users: results });
+    });
+  } catch (error) {
+    console.error('Error in getAllUsers:', error);
+    sendJsonResponse(res, 500, { success: false, error: 'Server error' });
+  }
+};
+
+// Update user account status (Admin only)
+const updateUserStatus = async (req, res) => {
+  try {
+    const data = await parseRequestBody(req);
+    const { UserID, AccountStatus } = data;
+    
+    if (!UserID || !AccountStatus) {
+      sendJsonResponse(res, 400, { success: false, error: 'UserID and AccountStatus are required' });
+      return;
+    }
+    
+    if (!['Active', 'Suspended'].includes(AccountStatus)) {
+      sendJsonResponse(res, 400, { success: false, error: 'Invalid AccountStatus' });
+      return;
+    }
+    
+    const query = 'UPDATE UserCredentials SET AccountStatus = ? WHERE UserID = ?';
+    pool.query(query, [AccountStatus, UserID], (err, result) => {
+      if (err) {
+        console.error('Error updating user status:', err);
+        sendJsonResponse(res, 500, { success: false, error: 'Failed to update user status' });
+        return;
+      }
+      
+      if (result.affectedRows === 0) {
+        sendJsonResponse(res, 404, { success: false, error: 'User not found' });
+        return;
+      }
+      
+      sendJsonResponse(res, 200, { success: true, message: 'User status updated successfully' });
+    });
+  } catch (error) {
+    console.error('Error in updateUserStatus:', error);
+    sendJsonResponse(res, 500, { success: false, error: 'Server error' });
+  }
+};
+
 module.exports = {
   getUserProfile,
   updateUserProfile,
   getStates,
-  getAvailableSkills
+  getAvailableSkills,
+  getAllUsers,
+  updateUserStatus
 };

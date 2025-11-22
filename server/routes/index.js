@@ -3,7 +3,7 @@ const { sendJsonResponse } = require('../utils/requestUtils');
 
 // Import volunteer management route handlers
 const { login, register, getAllUsers } = require('./authRoutes');
-const { getUserProfile, updateUserProfile, getStates, getAvailableSkills } = require('./userRoutes');
+const { getUserProfile, updateUserProfile, getStates, getAvailableSkills, getAllUsers: getAllUsersDetailed, updateUserStatus } = require('./userRoutes');
 const { getAllEvents, createEvent, updateEvent, deleteEvent } = require('./eventRoutes');
 const { getVolunteerMatches, createVolunteerMatch, updateMatchStatus } = require('./matchingRoutes');
 const { getUserNotifications, markNotificationRead, getUnreadCount } = require('./notificationRoutes');
@@ -45,6 +45,15 @@ const handleRequest = async (req, res) => {
 
   if (pathname === '/api/skills' && method === 'GET') {
     return getAvailableSkills(req, res);
+  }
+
+  // Admin: User management routes
+  if (pathname === '/api/admin/users' && method === 'GET') {
+    return getAllUsersDetailed(req, res);
+  }
+
+  if (pathname === '/api/admin/users/status' && method === 'PUT') {
+    return updateUserStatus(req, res);
   }
 
   // Event management routes

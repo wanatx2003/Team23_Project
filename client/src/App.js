@@ -18,6 +18,7 @@ import VolunteerDashboard from "./components/volunteer/VolunteerDashboard";
 import EventsList from "./components/volunteer/EventsList";
 import MyAssignments from "./components/volunteers/MyAssignments";
 import AdminReports from "./components/admin/AdminReports";
+import UserManagement from "./components/admin/UserManagement";
 
 // Import API service
 import API from "./services/api";
@@ -131,6 +132,8 @@ function App() {
         return <VolunteerHistory userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
       case "reports":
         return <AdminReports navigateToHome={() => setCurrentPage("dashboard")} />;
+      case "userManagement":
+        return <UserManagement navigateToHome={() => setCurrentPage("dashboard")} />;
       default:
         return (
           <LandingPage
@@ -159,6 +162,7 @@ function App() {
         navigateToHome={() => setCurrentPage("dashboard")}
         navigateToEvents={() => setCurrentPage("events")}
         navigateToReports={() => setCurrentPage("reports")}
+        navigateToUserManagement={() => setCurrentPage("userManagement")}
       />
 
       <div className={isLoggedIn ? "content-container" : ""}>

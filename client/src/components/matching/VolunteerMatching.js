@@ -26,26 +26,31 @@ const VolunteerMatching = ({ userData, navigateToHome }) => {
 
   const handleMatch = async (volunteerId, eventId) => {
     try {
-      const response = await fetch('/api/volunteer-matches', {
-        method: 'POST',
+      // Find the match to get the MatchID
+      const match = matches.find(m => m.UserID === volunteerId && m.EventID === eventId);
+      if (!match || !match.MatchID) {
+        alert('Error: Match not found');
+        return;
+      }
+
+      const response = await fetch(`/api/volunteer/match/${match.MatchID}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          VolunteerID: volunteerId,
-          EventID: eventId,
-          AdminID: userData.UserID
+          MatchStatus: 'confirmed'
         })
       });
 
       const data = await response.json();
       if (data.success) {
-        alert('Volunteer matched successfully!');
+        alert('Volunteer request confirmed successfully!');
         fetchMatches();
       } else {
         alert('Error: ' + data.error);
       }
     } catch (error) {
-      console.error('Error matching volunteer:', error);
-      alert('An error occurred while matching the volunteer.');
+      console.error('Error confirming request:', error);
+      alert('An error occurred while confirming the request.');
     }
   };
 
@@ -55,12 +60,12 @@ const VolunteerMatching = ({ userData, navigateToHome }) => {
     switch (filter) {
       case 'matched':
         filtered = matches.filter(match => 
-          match.MatchStatus !== 'unmatched' && match.MatchStatus !== null
+          match.MatchStatus === 'confirmed'
         );
         break;
       case 'unmatched':
         filtered = matches.filter(match => 
-          match.MatchStatus === 'unmatched' || match.MatchStatus === null
+          match.MatchStatus === 'pending'
         );
         break;
       case 'skill-match':
@@ -88,9 +93,9 @@ const VolunteerMatching = ({ userData, navigateToHome }) => {
       <div className="filter-controls">
         <label>Filter by:</label>
         <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="all">All Matches</option>
-          <option value="unmatched">Unmatched</option>
-          <option value="matched">Already Matched</option>
+          <option value="all">All Requests</option>
+          <option value="unmatched">Pending Requests</option>
+          <option value="matched">Confirmed</option>
           <option value="skill-match">Any Skill Matches</option>
           <option value="high-match">High Skill Match (75%+)</option>
         </select>
@@ -172,18 +177,18 @@ const VolunteerMatching = ({ userData, navigateToHome }) => {
                     </div>
                   )}
                   <span className={`status-badge status-${match.MatchStatus}`}>
-                    {match.MatchStatus === 'unmatched' ? 'Not Matched' : match.MatchStatus}
+                    {match.MatchStatus === 'pending' ? 'Pending Request' : match.MatchStatus.toUpperCase()}
                   </span>
                 </div>
 
-                {(match.MatchStatus === 'unmatched' || !match.MatchStatus) && (
+                {match.MatchStatus === 'pending' && (
                   <div className="match-actions">
                     <button
                       onClick={() => handleMatch(match.UserID, match.EventID)}
                       className="btn-match"
-                      title={`Match ${match.FullName || match.FirstName} to ${match.EventName}`}
+                      title={`Confirm ${match.FullName || match.FirstName} for ${match.EventName}`}
                     >
-                      Match Volunteer to Event
+                      ✓ Confirm Request
                     </button>
                   </div>
                 )}

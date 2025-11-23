@@ -11,19 +11,20 @@ const getVolunteerMatches = (req, res) => {
       ed.EventID, ed.EventName, ed.EventDate, ed.StartTime, ed.EndTime, ed.Urgency, ed.Location, ed.Description,
       ed.MaxVolunteers, ed.CurrentVolunteers,
       GROUP_CONCAT(DISTINCT ers.SkillName ORDER BY ers.SkillName) as RequiredSkills,
-      COALESCE(vm.MatchStatus, 'unmatched') as MatchStatus,
-      vm.MatchID
-    FROM EventDetails ed
-    LEFT JOIN EventRequiredSkill ers ON ed.EventID = ers.EventID
-    CROSS JOIN UserCredentials uc
+      vm.MatchStatus,
+      vm.MatchID,
+      vm.RequestedAt
+    FROM VolunteerMatches vm
+    INNER JOIN UserCredentials uc ON vm.VolunteerID = uc.UserID
+    INNER JOIN EventDetails ed ON vm.EventID = ed.EventID
     LEFT JOIN UserProfile up ON uc.UserID = up.UserID
     LEFT JOIN UserSkill us ON uc.UserID = us.UserID
-    LEFT JOIN VolunteerMatches vm ON uc.UserID = vm.VolunteerID AND ed.EventID = vm.EventID
-    WHERE uc.Role = 'volunteer' 
-      AND ed.EventStatus = 'published'
+    LEFT JOIN EventRequiredSkill ers ON ed.EventID = ers.EventID
+    WHERE ed.EventStatus = 'published'
       AND ed.EventDate >= CURDATE()
-    GROUP BY uc.UserID, ed.EventID, vm.MatchStatus, vm.MatchID
-    ORDER BY ed.EventDate, ed.Urgency DESC, uc.LastName
+      AND vm.MatchStatus IN ('pending', 'confirmed')
+    GROUP BY vm.MatchID, uc.UserID, ed.EventID
+    ORDER BY vm.RequestedAt DESC, ed.EventDate, ed.Urgency DESC
   `;
   
   pool.query(query, (err, results) => {

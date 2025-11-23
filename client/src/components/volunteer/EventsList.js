@@ -78,14 +78,17 @@ const EventsList = ({ userData, navigateToHome }) => {
       const data = await response.json();
 
       if (data.success) {
-        setMessage('Volunteer request sent successfully!');
+        setMessage('Request sent successfully! Wait for admin confirmation.');
+        setTimeout(() => setMessage(''), 4000);
         // Refresh events to update the volunteer count
         fetchAvailableEvents();
       } else {
-        setError(data.error || 'Failed to send volunteer request');
+        setError(data.error || 'Failed to send request');
+        setTimeout(() => setError(''), 4000);
       }
     } catch (error) {
       setError('Network error. Please try again.');
+      setTimeout(() => setError(''), 4000);
     }
   };
 
@@ -253,7 +256,7 @@ const EventsList = ({ userData, navigateToHome }) => {
                 >
                   {event.MaxVolunteers && event.CurrentVolunteers >= event.MaxVolunteers 
                     ? '🔒 Event Full' 
-                    : '✨ Volunteer for this Event'
+                    : '📝 Request to Volunteer'
                   }
                 </button>
               </div>

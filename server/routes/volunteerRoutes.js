@@ -293,9 +293,9 @@ const getMatchedEvents = (req, res, userId) => {
     ORDER BY ed.EventDate ASC
   `;
   
-  pool.query(query, [userId], (err, results) => {
+  pool.query(query, [userId, userId], (err, results) => {
     if (err) {
-      console.error("Error fetching matched events:", err);
+      console.error("Error fetching available events:", err);
       sendJsonResponse(res, 500, { success: false, error: "Internal server error" });
       return;
     }

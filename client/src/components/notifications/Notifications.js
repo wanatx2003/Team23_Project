@@ -45,6 +45,32 @@ const Notifications = ({ userData, navigateToHome }) => {
     }
   };
 
+  const markAllAsRead = async () => {
+    const unreadNotifications = notifications.filter(n => !n.IsRead);
+    
+    try {
+      const promises = unreadNotifications.map(notification =>
+        fetch('/api/notifications/read', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ NotificationID: notification.NotificationID })
+        })
+      );
+
+      await Promise.all(promises);
+      
+      setNotifications(notifications.map(notification => ({
+        ...notification,
+        IsRead: 1
+      })));
+      
+      alert('All notifications marked as read');
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+      alert('Failed to mark all notifications as read');
+    }
+  };
+
   const getFilteredNotifications = () => {
     switch (filter) {
       case 'unread':
@@ -77,6 +103,11 @@ const Notifications = ({ userData, navigateToHome }) => {
       <div className="notifications-header">
         <h1>Notifications</h1>
         <p>Stay updated with your volunteer assignments and reminders</p>
+        {notifications.filter(n => !n.IsRead).length > 0 && (
+          <button onClick={markAllAsRead} className="btn-mark-all-read">
+            Mark All as Read
+          </button>
+        )}
       </div>
 
       <div className="filter-controls">

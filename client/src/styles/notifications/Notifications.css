@@ -13,6 +13,7 @@
   color: white;
   border-radius: var(--radius-xl, 1.5rem);
   box-shadow: var(--shadow-lg, 0 10px 15px rgba(79, 70, 229, 0.3));
+  position: relative;
 }
 
 .notifications-header h1 {
@@ -25,6 +26,26 @@
 .notifications-header p {
   font-size: 1.125rem;
   opacity: 0.95;
+}
+
+.btn-mark-all-read {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid white;
+  color: white;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-mark-all-read:hover {
+  background: white;
+  color: #4F46E5;
+  transform: translateY(-2px);
 }
 
 .filter-controls {

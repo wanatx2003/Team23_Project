@@ -94,6 +94,19 @@ const createVolunteerMatch = async (req, res) => {
           return;
         }
         
+        // Create notification for volunteer
+        const notificationQuery = `
+          INSERT INTO Notifications (UserID, Subject, Message, NotificationType)
+          SELECT ?, 'Event Request Submitted', CONCAT('Your request to volunteer for "', ed.EventName, '" has been submitted. Please wait for admin confirmation.'), 'assignment'
+          FROM EventDetails ed WHERE ed.EventID = ?
+        `;
+        
+        pool.query(notificationQuery, [VolunteerID, EventID], (notifErr) => {
+          if (notifErr) {
+            console.error("Error creating notification:", notifErr);
+          }
+        });
+        
         // Update event volunteer count based on actual matches
         const updateQuery = `
           UPDATE EventDetails 
@@ -130,21 +143,68 @@ const updateMatchStatus = async (req, res, matchId) => {
     const data = await parseRequestBody(req);
     const { MatchStatus } = data;
     
-    const query = 'UPDATE VolunteerMatches SET MatchStatus = ? WHERE MatchID = ?';
+    // Get volunteer and event info before updating
+    const getInfoQuery = `
+      SELECT vm.VolunteerID, vm.EventID, ed.EventName, vm.MatchStatus as OldStatus
+      FROM VolunteerMatches vm
+      JOIN EventDetails ed ON vm.EventID = ed.EventID
+      WHERE vm.MatchID = ?
+    `;
     
-    pool.query(query, [MatchStatus, matchId], (err, result) => {
-      if (err) {
-        console.error("Error updating match status:", err);
-        sendJsonResponse(res, 500, { success: false, error: "Failed to update match status" });
-        return;
-      }
-      
-      if (result.affectedRows === 0) {
+    pool.query(getInfoQuery, [matchId], (infoErr, infoResult) => {
+      if (infoErr || infoResult.length === 0) {
+        console.error("Error getting match info:", infoErr);
         sendJsonResponse(res, 404, { success: false, error: "Match not found" });
         return;
       }
       
-      sendJsonResponse(res, 200, { success: true, message: "Match status updated successfully" });
+      const matchInfo = infoResult[0];
+      const query = 'UPDATE VolunteerMatches SET MatchStatus = ? WHERE MatchID = ?';
+      
+      pool.query(query, [MatchStatus, matchId], (err, result) => {
+        if (err) {
+          console.error("Error updating match status:", err);
+          sendJsonResponse(res, 500, { success: false, error: "Failed to update match status" });
+          return;
+        }
+        
+        if (result.affectedRows === 0) {
+          sendJsonResponse(res, 404, { success: false, error: "Match not found" });
+          return;
+        }
+        
+        // Create notification based on status change
+        let subject, message, notifType;
+        
+        if (MatchStatus === 'confirmed' && matchInfo.OldStatus === 'pending') {
+          subject = 'Event Request Confirmed';
+          message = `Your request to volunteer for "${matchInfo.EventName}" has been confirmed by an admin. Check your assignments for details.`;
+          notifType = 'assignment';
+        } else if (MatchStatus === 'declined') {
+          subject = 'Event Request Declined';
+          message = `Your request to volunteer for "${matchInfo.EventName}" was not approved. Please check other available events.`;
+          notifType = 'update';
+        } else if (MatchStatus === 'completed') {
+          subject = 'Event Completed';
+          message = `Thank you for volunteering at "${matchInfo.EventName}". Your participation has been recorded.`;
+          notifType = 'update';
+        }
+        
+        if (subject) {
+          const notificationQuery = `
+            INSERT INTO Notifications (UserID, Subject, Message, NotificationType)
+            VALUES (?, ?, ?, ?)
+          `;
+          
+          pool.query(notificationQuery, [matchInfo.VolunteerID, subject, message, notifType], (notifErr) => {
+            if (notifErr) {
+              console.error("Error creating notification:", notifErr);
+            }
+          });
+        }
+        
+        sendJsonResponse(res, 200, { success: true, message: "Match status updated successfully" });
+      });
     });
   } catch (error) {
     console.error('Error in updateMatchStatus:', error);

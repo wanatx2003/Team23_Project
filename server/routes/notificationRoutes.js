@@ -114,10 +114,78 @@ const getUnreadCount = (req, res, userId) => {
   });
 };
 
+// Send event reminders (can be called manually or via cron job)
+const sendEventReminders = async (req, res) => {
+  try {
+    // Get events happening in the next 24 hours
+    const query = `
+      SELECT DISTINCT
+        vm.VolunteerID,
+        ed.EventID,
+        ed.EventName,
+        ed.EventDate,
+        ed.StartTime,
+        ed.Location
+      FROM VolunteerMatches vm
+      JOIN EventDetails ed ON vm.EventID = ed.EventID
+      WHERE vm.MatchStatus = 'confirmed'
+        AND ed.EventDate = DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+        AND ed.EventStatus = 'published'
+    `;
+    
+    pool.query(query, (err, events) => {
+      if (err) {
+        console.error("Error fetching events for reminders:", err);
+        if (res) sendJsonResponse(res, 500, { success: false, error: "Failed to send reminders" });
+        return;
+      }
+      
+      if (events.length === 0) {
+        console.log("No upcoming events to send reminders for");
+        if (res) sendJsonResponse(res, 200, { success: true, message: "No reminders to send", count: 0 });
+        return;
+      }
+      
+      const notificationPromises = events.map(event => {
+        const message = `Reminder: You have an upcoming volunteer event \"${event.EventName}\" tomorrow at ${event.StartTime || 'TBD'}. Location: ${event.Location}`;
+        const notifQuery = `
+          INSERT INTO Notifications (UserID, Subject, Message, NotificationType)
+          VALUES (?, 'Event Reminder - Tomorrow', ?, 'reminder')
+        `;
+        
+        return new Promise((resolve, reject) => {
+          pool.query(notifQuery, [event.VolunteerID, message], (notifErr, result) => {
+            if (notifErr) {
+              console.error("Error creating reminder notification:", notifErr);
+              reject(notifErr);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+      });
+      
+      Promise.all(notificationPromises)
+        .then(() => {
+          console.log(`Sent ${events.length} event reminders`);
+          if (res) sendJsonResponse(res, 200, { success: true, message: "Reminders sent successfully", count: events.length });
+        })
+        .catch(err => {
+          console.error("Error sending some reminders:", err);
+          if (res) sendJsonResponse(res, 500, { success: false, error: "Some reminders failed to send" });
+        });
+    });
+  } catch (error) {
+    console.error('Error in sendEventReminders:', error);
+    if (res) sendJsonResponse(res, 500, { success: false, error: "Server error" });
+  }
+};
+
 module.exports = {
   getUserNotifications,
   markNotificationRead,
   createNotification,
   createNotificationEndpoint,
-  getUnreadCount
+  getUnreadCount,
+  sendEventReminders
 };

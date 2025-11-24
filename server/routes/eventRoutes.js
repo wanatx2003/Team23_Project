@@ -152,6 +152,20 @@ const updateEvent = async (req, res) => {
         });
         
         Promise.all(skillPromises).then(() => {
+          // Notify all volunteers assigned to this event about the update
+          const notificationQuery = `
+            INSERT INTO Notifications (UserID, Subject, Message, NotificationType)
+            SELECT vm.VolunteerID, 'Event Updated', CONCAT('The event \"', ?, '\" has been updated. Please check the event details for changes.'), 'update'
+            FROM VolunteerMatches vm
+            WHERE vm.EventID = ? AND vm.MatchStatus IN ('pending', 'confirmed')
+          `;
+          
+          pool.query(notificationQuery, [EventName, EventID], (notifErr) => {
+            if (notifErr) {
+              console.error("Error creating update notifications:", notifErr);
+            }
+          });
+          
           sendJsonResponse(res, 200, { success: true, message: "Event updated successfully" });
         });
       });
@@ -309,6 +323,40 @@ const updateEventStatus = async (req, res) => {
       if (result.affectedRows === 0) {
         sendJsonResponse(res, 404, { success: false, error: "Event not found" });
         return;
+      }
+      
+      // Notify volunteers about event status changes (cancellation or completion)
+      if (EventStatus === 'cancelled' || EventStatus === 'completed') {
+        const getEventQuery = 'SELECT EventName FROM EventDetails WHERE EventID = ?';
+        pool.query(getEventQuery, [EventID], (getErr, eventResult) => {
+          if (!getErr && eventResult.length > 0) {
+            const eventName = eventResult[0].EventName;
+            let subject, message, notifType;
+            
+            if (EventStatus === 'cancelled') {
+              subject = 'Event Cancelled';
+              message = `The event \"${eventName}\" has been cancelled. We apologize for any inconvenience.`;
+              notifType = 'cancellation';
+            } else if (EventStatus === 'completed') {
+              subject = 'Event Completed';
+              message = `The event \"${eventName}\" has been marked as completed. Thank you for your participation!`;
+              notifType = 'update';
+            }
+            
+            const notificationQuery = `
+              INSERT INTO Notifications (UserID, Subject, Message, NotificationType)
+              SELECT vm.VolunteerID, ?, ?, ?
+              FROM VolunteerMatches vm
+              WHERE vm.EventID = ? AND vm.MatchStatus IN ('pending', 'confirmed')
+            `;
+            
+            pool.query(notificationQuery, [subject, message, notifType, EventID], (notifErr) => {
+              if (notifErr) {
+                console.error("Error creating status change notifications:", notifErr);
+              }
+            });
+          }
+        });
       }
       
       sendJsonResponse(res, 200, { success: true, message: "Event status updated successfully" });

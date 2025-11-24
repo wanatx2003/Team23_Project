@@ -5,8 +5,8 @@ const { sendJsonResponse } = require('../utils/requestUtils');
 const { login, register, getAllUsers } = require('./authRoutes');
 const { getUserProfile, updateUserProfile, getStates, getAvailableSkills, getAllUsers: getAllUsersDetailed, updateUserStatus } = require('./userRoutes');
 const { getAllEvents, createEvent, updateEvent, deleteEvent, updateEventStatus } = require('./eventRoutes');
-const { getVolunteerMatches, createVolunteerMatch, updateMatchStatus } = require('./matchingRoutes');
-const { getUserNotifications, markNotificationRead, getUnreadCount } = require('./notificationRoutes');
+const { getVolunteerMatches, createVolunteerMatch, updateMatchStatus, getSmartMatchesForEvent, autoMatchVolunteers } = require('./matchingRoutes');
+const { getUserNotifications, markNotificationRead, getUnreadCount, sendEventReminders } = require('./notificationRoutes');
 const { getVolunteerHistory, getAllVolunteerHistory, addVolunteerHistory, updateVolunteerHistory } = require('./historyRoutes');
 const { getVolunteerParticipationReport, getEventSummaryReport, getVolunteerSummaryReport } = require('./volunteerReportRoutes');
 
@@ -92,6 +92,15 @@ const handleRequest = async (req, res) => {
     return updateMatchStatus(req, res);
   }
 
+  // Smart matching routes
+  if (pathname.match(/^\/api\/smart-matches\/\d+$/) && method === 'GET') {
+    return getSmartMatchesForEvent(req, res);
+  }
+
+  if (pathname === '/api/auto-match' && method === 'POST') {
+    return autoMatchVolunteers(req, res);
+  }
+
   // Notification routes
   if (pathname.startsWith('/api/notifications/') && pathname.split('/')[3] && method === 'GET') {
     const userId = pathname.split('/')[3];
@@ -105,6 +114,10 @@ const handleRequest = async (req, res) => {
 
   if (pathname === '/api/notifications/read' && method === 'POST') {
     return markNotificationRead(req, res);
+  }
+
+  if (pathname === '/api/notifications/reminders' && method === 'POST') {
+    return sendEventReminders(req, res);
   }
 
   // Volunteer history routes

@@ -8,7 +8,7 @@ const getAllEvents = (req, res) => {
       ed.EventID, ed.EventName, ed.Description, ed.Location, ed.Urgency,
       ed.EventDate, ed.StartTime, ed.EndTime, ed.MaxVolunteers, ed.CurrentVolunteers,
       ed.EventStatus, ed.CreatedAt,
-      uc.FirstName as CreatedByName,
+      uc.Email as CreatedByEmail,
       GROUP_CONCAT(ers.SkillName) as RequiredSkills
     FROM EventDetails ed
     LEFT JOIN UserCredentials uc ON ed.CreatedBy = uc.UserID
@@ -192,7 +192,7 @@ const getVolunteerMatches = (req, res, eventId) => {
   const query = `
     SELECT 
       vm.MatchID, vm.MatchStatus, vm.RequestedAt,
-      uc.UserID, uc.FirstName, uc.LastName, uc.Email,
+      uc.UserID, uc.Email,
       up.FullName, up.City, up.StateCode
     FROM VolunteerMatches vm
     JOIN UserCredentials uc ON vm.VolunteerID = uc.UserID
@@ -257,7 +257,7 @@ const getAvailableEvents = (req, res) => {
       ed.EventID, ed.EventName, ed.Description, ed.Location, ed.Urgency,
       ed.EventDate, ed.StartTime, ed.EndTime, ed.MaxVolunteers, ed.CurrentVolunteers,
       ed.EventStatus, ed.CreatedAt,
-      uc.FirstName as CreatedByName,
+      uc.Email as CreatedByEmail,
       GROUP_CONCAT(ers.SkillName) as RequiredSkills
     FROM EventDetails ed
     LEFT JOIN UserCredentials uc ON ed.CreatedBy = uc.UserID

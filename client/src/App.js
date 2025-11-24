@@ -71,8 +71,12 @@ function App() {
     try {
       const data = await API.register(userData);
       if (data.success) {
-        alert("Registration successful! Please log in to complete your profile.");
-        setCurrentPage("login");
+        // Log the user in immediately and redirect to profile completion
+        localStorage.setItem("volunteerUser", JSON.stringify(data.user));
+        setIsLoggedIn(true);
+        setUserData(data.user);
+        alert("Registration successful! Please complete your profile.");
+        setCurrentPage("profile");
       } else {
         alert("Failed to register: " + data.error);
       }

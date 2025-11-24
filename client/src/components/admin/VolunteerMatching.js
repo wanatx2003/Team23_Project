@@ -266,7 +266,7 @@ const VolunteerMatching = () => {
                 {matches.map(match => (
                   <div key={match.MatchID} className="match-card">
                     <div className="volunteer-info">
-                      <h4>{match.FullName || `${match.FirstName} ${match.LastName}`}</h4>
+                      <h4>{match.FullName || match.Email}</h4>
                       <p>{match.Email}</p>
                       <p>{match.City}, {match.StateCode}</p>
                     </div>
@@ -314,7 +314,7 @@ const VolunteerMatching = () => {
                     
                     <div className="volunteer-info">
                       <div className="volunteer-header">
-                        <h4>{volunteer.FullName || `${volunteer.FirstName} ${volunteer.LastName}`}</h4>
+                        <h4>{volunteer.FullName || volunteer.Email}</h4>
                         <div className="match-score-badge" style={{ 
                           backgroundColor: getMatchScoreColor(volunteer.matchScore),
                           color: 'white',

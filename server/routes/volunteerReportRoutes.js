@@ -15,7 +15,7 @@ const getVolunteerParticipationReport = async (req, res) => {
     let query = `
       SELECT 
         vh.HistoryID,
-        CONCAT(uc.FirstName, ' ', uc.LastName) as VolunteerName,
+        up.FullName as VolunteerName,
         uc.Email as VolunteerEmail,
         ed.EventName,
         ed.EventDate,
@@ -104,13 +104,14 @@ const getEventSummaryReport = async (req, res) => {
         ed.MaxVolunteers,
         ed.CurrentVolunteers,
         ed.EventStatus,
-        CONCAT(uc.FirstName, ' ', uc.LastName) as CreatedByName,
+        up2.FullName as CreatedByName,
         GROUP_CONCAT(DISTINCT ers.SkillName) as RequiredSkills,
         COUNT(DISTINCT vh.HistoryID) as TotalParticipations,
         COUNT(DISTINCT CASE WHEN vh.ParticipationStatus = 'attended' THEN vh.HistoryID END) as AttendedCount,
         SUM(CASE WHEN vh.ParticipationStatus = 'attended' THEN vh.HoursVolunteered ELSE 0 END) as TotalHours
       FROM EventDetails ed
       JOIN UserCredentials uc ON ed.CreatedBy = uc.UserID
+      LEFT JOIN UserProfile up2 ON uc.UserID = up2.UserID
       LEFT JOIN EventRequiredSkill ers ON ed.EventID = ers.EventID
       LEFT JOIN VolunteerHistory vh ON ed.EventID = vh.EventID
       WHERE 1=1
@@ -166,9 +167,8 @@ const getVolunteerSummaryReport = async (req, res) => {
     const query = `
       SELECT 
         uc.UserID,
-        CONCAT(uc.FirstName, ' ', uc.LastName) as VolunteerName,
+        up.FullName as VolunteerName,
         uc.Email,
-        up.FullName,
         up.City,
         up.StateCode,
         up.Zipcode,

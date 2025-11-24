@@ -105,7 +105,7 @@ const VolunteerDashboard = ({ userData, onNavigateToProfile, onNavigateToEvents,
   return (
     <div className="volunteer-dashboard">
       <div className="dashboard-header">
-        <h1>Welcome back, {userData.FirstName}!</h1>
+        <h1>Welcome back!</h1>
         <p>Here's your volunteer activity overview</p>
       </div>
 

@@ -5,7 +5,7 @@ const { parseRequestBody, sendJsonResponse } = require('../utils/requestUtils');
 const getAllVolunteerProfiles = (req, res) => {
   const query = `
     SELECT 
-      uc.UserID, uc.FirstName, uc.LastName, uc.Email,
+      uc.UserID, uc.Email,
       up.FullName, up.City, up.StateCode, up.Zipcode,
       GROUP_CONCAT(DISTINCT us.SkillName) as skills,
       GROUP_CONCAT(DISTINCT upr.PreferenceText) as preferences
@@ -15,7 +15,7 @@ const getAllVolunteerProfiles = (req, res) => {
     LEFT JOIN UserPreference upr ON uc.UserID = upr.UserID
     WHERE uc.Role = 'volunteer' AND uc.AccountStatus = 'Active'
     GROUP BY uc.UserID
-    ORDER BY uc.FirstName, uc.LastName
+    ORDER BY up.FullName
   `;
   
   pool.query(query, (err, results) => {

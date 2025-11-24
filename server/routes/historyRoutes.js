@@ -37,7 +37,7 @@ const getAllVolunteerHistory = (req, res) => {
   const query = `
     SELECT 
       vh.HistoryID, vh.ParticipationStatus, vh.HoursVolunteered, vh.ParticipationDate,
-      uc.UserID, uc.FirstName, uc.LastName, up.FullName,
+      uc.UserID, up.FullName,
       ed.EventID, ed.EventName, ed.Description, ed.Location, ed.EventDate, ed.Urgency,
       GROUP_CONCAT(ers.SkillName) as RequiredSkills
     FROM VolunteerHistory vh

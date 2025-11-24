@@ -47,7 +47,7 @@ const VolunteerDashboard = ({ userData, navigateToHome, navigateToProfile, navig
   return (
     <div className="volunteer-dashboard">
       <div className="dashboard-header">
-        <h2>Welcome back, {userData.FirstName}!</h2>
+        <h2>Welcome back!</h2>
         <p>Your volunteer dashboard</p>
       </div>
 

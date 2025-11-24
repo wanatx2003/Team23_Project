@@ -92,7 +92,7 @@ const VolunteerHistory = ({ userData, navigateToHome }) => {
               {getFilteredHistory().map(record => (
                 <tr key={record.HistoryID}>
                   {userData.Role === 'admin' && (
-                    <td>{record.FullName || `${record.FirstName} ${record.LastName}`}</td>
+                    <td>{record.FullName || 'Profile Incomplete'}</td>
                   )}
                   <td>{record.EventName}</td>
                   <td>{new Date(record.EventDate).toLocaleDateString()}</td>

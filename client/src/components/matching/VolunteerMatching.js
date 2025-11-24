@@ -110,7 +110,7 @@ const VolunteerMatching = ({ userData, navigateToHome }) => {
             {getFilteredMatches().map((match, index) => (
               <div key={`${match.UserID}-${match.EventID}`} className="match-card">
                 <div className="volunteer-info">
-                  <h3>{match.FullName || `${match.FirstName} ${match.LastName}`}</h3>
+                  <h3>{match.FullName || match.Email}</h3>
                   <p><strong>Email:</strong> {match.Email}</p>
                   <p><strong>Location:</strong> {match.City}, {match.StateCode}</p>
                   <div className="skills-section">

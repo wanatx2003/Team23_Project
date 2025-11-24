@@ -3,13 +3,12 @@ import '../../styles/auth/Register.css';
 
 const Register = ({ onRegister, navigateToLogin }) => {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
     phoneNumber: '',
-    role: 'volunteer'
+    role: 'volunteer',
+    adminPasscode: ''
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -38,8 +37,9 @@ const Register = ({ onRegister, navigateToLogin }) => {
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
-    if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
-    if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
+    if (formData.role === 'admin' && !formData.adminPasscode.trim()) {
+      newErrors.adminPasscode = 'Admin security passcode is required';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -71,34 +71,6 @@ const Register = ({ onRegister, navigateToLogin }) => {
         <div className="register-form-wrapper">
           <h2>Create Your Account</h2>
           <form onSubmit={handleSubmit} className="register-form">
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="firstName">First Name *</label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  placeholder="Enter your first name"
-                />
-                {errors.firstName && <span className="error">{errors.firstName}</span>}
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="lastName">Last Name *</label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  placeholder="Enter your last name"
-                />
-                {errors.lastName && <span className="error">{errors.lastName}</span>}
-              </div>
-            </div>
-
             <div className="form-group">
               <label htmlFor="email">Email Address (Username) *</label>
               <input
@@ -165,6 +137,22 @@ const Register = ({ onRegister, navigateToLogin }) => {
                 <option value="admin">Administrator</option>
               </select>
             </div>
+
+            {formData.role === 'admin' && (
+              <div className="form-group">
+                <label htmlFor="adminPasscode">Admin Security Passcode *</label>
+                <input
+                  type="password"
+                  id="adminPasscode"
+                  name="adminPasscode"
+                  value={formData.adminPasscode}
+                  onChange={handleChange}
+                  placeholder="Enter admin security passcode"
+                />
+                <small className="form-hint">Contact your organization administrator for the passcode</small>
+                {errors.adminPasscode && <span className="error">{errors.adminPasscode}</span>}
+              </div>
+            )}
 
             <button type="submit" className="register-button" disabled={loading}>
               {loading ? 'Creating Account...' : 'Create Account'}

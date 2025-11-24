@@ -69,8 +69,6 @@ CREATE TABLE UserCredentials (
   UserID INT NOT NULL AUTO_INCREMENT,
   Username VARCHAR(50) NOT NULL,
   Password VARCHAR(255) NOT NULL,
-  FirstName VARCHAR(50) NOT NULL,
-  LastName VARCHAR(50) NOT NULL,
   Email VARCHAR(100) NOT NULL,
   PhoneNumber BIGINT DEFAULT NULL,
   Role ENUM('volunteer','admin') NOT NULL DEFAULT 'volunteer',

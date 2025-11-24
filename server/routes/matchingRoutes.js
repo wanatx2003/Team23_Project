@@ -5,7 +5,7 @@ const { parseRequestBody, sendJsonResponse } = require('../utils/requestUtils');
 const getVolunteerMatches = (req, res) => {
   const query = `
     SELECT DISTINCT
-      uc.UserID, uc.FirstName, uc.LastName, uc.Email,
+      uc.UserID, uc.Email,
       up.FullName, up.City, up.StateCode,
       GROUP_CONCAT(DISTINCT us.SkillName ORDER BY us.SkillName) as Skills,
       ed.EventID, ed.EventName, ed.EventDate, ed.StartTime, ed.EndTime, ed.Urgency, ed.Location, ed.Description,

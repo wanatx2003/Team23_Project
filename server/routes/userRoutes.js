@@ -6,7 +6,7 @@ const getUserProfile = async (req, res, userId) => {
   try {
     const query = `
       SELECT 
-        uc.UserID, uc.FirstName, uc.LastName, uc.Email, uc.PhoneNumber, uc.Role,
+        uc.UserID, uc.Email, uc.PhoneNumber, uc.Role,
         up.FullName, up.Address1, up.Address2, up.City, up.StateCode, up.Zipcode
       FROM UserCredentials uc
       LEFT JOIN UserProfile up ON uc.UserID = up.UserID
@@ -218,7 +218,7 @@ const getAllUsers = async (req, res) => {
         uc.Username,
         uc.Role,
         uc.AccountStatus,
-        COALESCE(up.FullName, CONCAT(uc.FirstName, ' ', uc.LastName)) as FullName
+        up.FullName
       FROM UserCredentials uc
       LEFT JOIN UserProfile up ON uc.UserID = up.UserID
       ORDER BY uc.AccountCreatedAt DESC

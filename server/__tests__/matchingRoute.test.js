@@ -1,7 +1,6 @@
 const {
-  getVolunteerMatches,
-  createVolunteerMatch,
-  updateMatchStatus
+  getSmartMatchesForEvent,
+  autoMatchVolunteers
 } = require("../routes/matchingRoutes");
 
 const pool = require("../config/db");
@@ -20,97 +19,136 @@ beforeAll(() => {
 
 beforeEach(() => jest.clearAllMocks());
 
-describe("Volunteer Matching Routes", () => {
+describe("Smart Matching Algorithm (matchingRoutes.js)", () => {
 
-  // -----------------------------------------------------
-  // ✅ getVolunteerMatches
-  // -----------------------------------------------------
-  test("getVolunteerMatches returns formatted skill data", () => {
-    const mockData = [
+  // ====================================================================
+  // getSmartMatchesForEvent
+  // ====================================================================
+
+  test("getSmartMatchesForEvent returns match results with computed scores", () => {
+    const req = { url: "/api/match/12" };
+
+    const mockRows = [
       {
         UserID: 1,
-        FirstName: "John",
-        LastName: "Doe",
-        Skills: "CPR,Driving",
+        Email: "a@test.com",
+        FullName: "John Doe",
+        City: "Houston",
+        StateCode: "TX",
+        VolunteerSkills: "CPR,Driving",
+        Availability: "Mon:08:00-12:00",
+        EventID: 12,
+        EventName: "Food Drive",
+        EventDate: "2025-02-10",
+        StartTime: "09:00",
+        EndTime: "12:00",
+        Location: "Houston TX",
+        Urgency: "high",
+        MaxVolunteers: 10,
+        CurrentVolunteers: 3,
         RequiredSkills: "CPR,Teaching",
-        MatchStatus: "unmatched"
+        CurrentMatchStatus: "none",
+        MatchID: null
       }
     ];
 
-    pool.query.mockImplementation((q, cb) => cb(null, mockData));
+    pool.query.mockImplementation((q, p, cb) => cb(null, mockRows));
 
-    getVolunteerMatches({}, {});
+    getSmartMatchesForEvent(req, {});
 
     expect(sendJsonResponse).toHaveBeenCalledWith(
       expect.anything(),
       200,
       expect.objectContaining({
         success: true,
-        matches: expect.arrayContaining([
-          expect.objectContaining({
-            Skills: ["CPR", "Driving"],
-            RequiredSkills: ["CPR", "Teaching"],
-            SkillMatch: true
-          })
-        ])
+        matches: expect.any(Array)
+      })
+    );
+
+    const result = sendJsonResponse.mock.calls[0][2].matches[0];
+
+    expect(result.Skills).toEqual(["CPR", "Driving"]);
+    expect(result.RequiredSkills).toEqual(["CPR", "Teaching"]);
+    expect(result.MatchScore).toBeGreaterThan(0);
+    expect(result.MatchReasons.length).toBeGreaterThan(0);
+  });
+
+  test("getSmartMatchesForEvent handles DB error", () => {
+    pool.query.mockImplementation((q, p, cb) =>
+      cb(new Error("DB error"), null)
+    );
+
+    getSmartMatchesForEvent({ url: "/api/match/12" }, {});
+
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      expect.anything(),
+      500,
+      { success: false, error: "Internal server error" }
+    );
+  });
+
+  test("getSmartMatchesForEvent returns empty when no volunteers found", () => {
+    pool.query.mockImplementation((q, p, cb) => cb(null, []));
+
+    getSmartMatchesForEvent({ url: "/api/match/12" }, {});
+
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      expect.anything(),
+      200,
+      expect.objectContaining({
+        success: true,
+        matches: []
       })
     );
   });
 
-  test("getVolunteerMatches handles DB error", () => {
-    pool.query.mockImplementation((q, cb) => cb(new Error("DB error"), null));
+  // ====================================================================
+  // autoMatchVolunteers
+  // ====================================================================
 
-    getVolunteerMatches({}, {});
+  test("autoMatchVolunteers matches volunteers above MinMatchScore", async () => {
+    parseRequestBody.mockResolvedValue({ EventID: 10, MinMatchScore: 40, MaxMatches: 5 });
 
-    expect(sendJsonResponse).toHaveBeenCalledWith(
-      expect.anything(),
-      500,
-      { success: false, error: "Internal server error" }
-    );
-  });
+    const mockVolunteerRows = [
+      {
+        UserID: 1,
+        VolunteerSkills: "CPR,Driving",
+        RequiredSkills: "CPR,Teaching",
+        EventID: 10,
+        EventName: "Cleanup Event"
+      }
+    ];
 
-  // -----------------------------------------------------
-  // ✅ createVolunteerMatch
-  // -----------------------------------------------------
-  test("createVolunteerMatch prevents duplicate match", async () => {
-    parseRequestBody.mockResolvedValue({ VolunteerID: 1, EventID: 2 });
-
-    // Simulate existing match
-    pool.query.mockImplementationOnce((q, p, cb) => cb(null, [{}]));
-
-    await createVolunteerMatch({}, {});
-
-    expect(sendJsonResponse).toHaveBeenCalledWith(
-      expect.anything(),
-      400,
-      { success: false, error: "Volunteer is already matched to this event" }
-    );
-  });
-
-  test("createVolunteerMatch inserts match and notification", async () => {
-    parseRequestBody.mockResolvedValue({ VolunteerID: 1, EventID: 2 });
-
-    // First query: no match exists
+    // First DB call → volunteers list
     pool.query
-      .mockImplementationOnce((q, p, cb) => cb(null, [])) // check match
-      .mockImplementationOnce((q, p, cb) => cb(null, { insertId: 5 })) // insert match
-      .mockImplementation((q, p, cb) => cb(null)); // insert notification
+      .mockImplementationOnce((q, p, cb) => cb(null, mockVolunteerRows))
+      // Second DB call → insertVolunteerMatch
+      .mockImplementationOnce((q, p, cb) => cb(null))
+      // Third → notification insert
+      .mockImplementationOnce((q, p, cb) => cb(null))
+      // Fourth → update event count
+      .mockImplementation((q, p, cb) => cb(null));
 
-    await createVolunteerMatch({}, {});
+    await autoMatchVolunteers({}, {});
 
     expect(sendJsonResponse).toHaveBeenCalledWith(
       expect.anything(),
       200,
-      { success: true, message: "Volunteer matched successfully" }
+      expect.objectContaining({
+        success: true,
+        matched: 1
+      })
     );
   });
 
-  test("createVolunteerMatch handles DB query failure", async () => {
-    parseRequestBody.mockResolvedValue({ VolunteerID: 1, EventID: 2 });
+  test("autoMatchVolunteers handles DB failure", async () => {
+    parseRequestBody.mockResolvedValue({ EventID: 10 });
 
-    pool.query.mockImplementationOnce((q, p, cb) => cb(new Error("DB error"), null));
+    pool.query.mockImplementationOnce((q, p, cb) =>
+      cb(new Error("DB error"), null)
+    );
 
-    await createVolunteerMatch({}, {});
+    await autoMatchVolunteers({}, {});
 
     expect(sendJsonResponse).toHaveBeenCalledWith(
       expect.anything(),
@@ -119,34 +157,21 @@ describe("Volunteer Matching Routes", () => {
     );
   });
 
-  // -----------------------------------------------------
-  // ✅ updateMatchStatus
-  // -----------------------------------------------------
-  test("updateMatchStatus updates match", async () => {
-    parseRequestBody.mockResolvedValue({ MatchID: 99, MatchStatus: "approved" });
+  test("autoMatchVolunteers returns early when no volunteers", async () => {
+    parseRequestBody.mockResolvedValue({ EventID: 10 });
 
-    pool.query.mockImplementation((q, p, cb) => cb(null, { affectedRows: 1 }));
+    pool.query.mockImplementationOnce((q, p, cb) => cb(null, []));
 
-    await updateMatchStatus({}, {});
+    await autoMatchVolunteers({}, {});
 
     expect(sendJsonResponse).toHaveBeenCalledWith(
       expect.anything(),
       200,
-      { success: true, message: "Match status updated successfully" }
+      expect.objectContaining({
+        success: true,
+        matched: 0
+      })
     );
   });
 
-  test("updateMatchStatus handles DB error", async () => {
-    parseRequestBody.mockResolvedValue({ MatchID: 99, MatchStatus: "approved" });
-
-    pool.query.mockImplementation((q, p, cb) => cb(new Error("DB error")));
-
-    await updateMatchStatus({}, {});
-
-    expect(sendJsonResponse).toHaveBeenCalledWith(
-      expect.anything(),
-      500,
-      { success: false, error: "Failed to update match status" }
-    );
-  });
 });

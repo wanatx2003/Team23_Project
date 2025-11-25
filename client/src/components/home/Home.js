@@ -61,7 +61,7 @@ const Home = ({
           Welcome to Volunteer Connect
         </h1>
         <p>
-          Welcome back, {userData.FirstName}! Ready to make a difference today?
+          Welcome back, {userData?.FullName || userData?.Email?.split('@')[0] || 'User'}! Ready to make a difference today?
         </p>
         <p className="hero-subtitle">
           Connect with meaningful volunteer opportunities and track your impact in the community

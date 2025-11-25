@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../../styles/profile/UserProfile.css';
 
-const UserProfile = ({ userData, navigateToHome }) => {
+const UserProfile = ({ userData, navigateToHome, updateUserData }) => {
   const [profile, setProfile] = useState({
     FullName: '',
     Address1: '',
@@ -139,6 +139,20 @@ const UserProfile = ({ userData, navigateToHome }) => {
       const data = await response.json();
       if (data.success) {
         alert('Profile updated successfully!');
+        
+        // Update userData in App.js with new profile info
+        if (updateUserData) {
+          updateUserData({
+            FullName: profile.FullName,
+            City: profile.City,
+            StateCode: profile.StateCode
+          });
+        }
+        
+        // Navigate back to dashboard
+        setTimeout(() => {
+          navigateToHome();
+        }, 500);
       } else {
         alert('Failed to update profile: ' + data.error);
       }

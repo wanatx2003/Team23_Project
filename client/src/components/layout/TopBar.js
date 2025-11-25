@@ -194,7 +194,7 @@ const TopBar = ({
                 )}
               </button>
 
-              <span>Hello, {userData?.Email?.split('@')[0] || 'User'}</span>
+              <span>Hello, {userData?.FullName || userData?.Email?.split('@')[0] || 'User'}</span>
 
               <div 
                 className="dropdown-container"

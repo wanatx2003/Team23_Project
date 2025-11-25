@@ -58,6 +58,13 @@ function App() {
     }
   };
 
+  // Update user data handler
+  const updateUserData = (updatedData) => {
+    const newUserData = { ...userData, ...updatedData };
+    setUserData(newUserData);
+    localStorage.setItem("volunteerUser", JSON.stringify(newUserData));
+  };
+
   // Logout handler
   const handleLogout = () => {
     setUserData(null);
@@ -121,7 +128,7 @@ function App() {
           />
         );
       case "profile":
-        return <UserProfile userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
+        return <UserProfile userData={userData} navigateToHome={() => setCurrentPage("dashboard")} updateUserData={updateUserData} />;
       case "assignments":
         return <MyAssignments userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
       case "events":

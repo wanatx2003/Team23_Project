@@ -35,7 +35,13 @@ function App() {
       const user = JSON.parse(savedUser);
       setUserData(user);
       setIsLoggedIn(true);
-      setCurrentPage("dashboard");
+      
+      // Redirect based on role: admin to eventManagement, volunteer to dashboard
+      if (user.Role === 'admin') {
+        setCurrentPage("eventManagement");
+      } else {
+        setCurrentPage("dashboard");
+      }
     }
   }, []);
 
@@ -48,7 +54,13 @@ function App() {
         localStorage.setItem("volunteerUser", JSON.stringify(data.user));
         setIsLoggedIn(true);
         setUserData(data.user);
-        setCurrentPage("dashboard");
+        
+        // Redirect based on role: admin to eventManagement, volunteer to dashboard
+        if (data.user.Role === 'admin') {
+          setCurrentPage("eventManagement");
+        } else {
+          setCurrentPage("dashboard");
+        }
       } else {
         alert(data.error || "Invalid email or password");
       }
@@ -78,12 +90,18 @@ function App() {
     try {
       const data = await API.register(userData);
       if (data.success) {
-        // Log the user in immediately and redirect to profile completion
         localStorage.setItem("volunteerUser", JSON.stringify(data.user));
         setIsLoggedIn(true);
         setUserData(data.user);
-        alert("Registration successful! Please complete your profile.");
-        setCurrentPage("profile");
+        
+        // Redirect based on role: admin to eventManagement, volunteer to profile
+        if (data.user.Role === 'admin') {
+          alert("Registration successful! Welcome, Admin.");
+          setCurrentPage("eventManagement");
+        } else {
+          alert("Registration successful! Please complete your profile.");
+          setCurrentPage("profile");
+        }
       } else {
         alert("Failed to register: " + data.error);
       }
@@ -94,6 +112,13 @@ function App() {
   };
 
   const renderCurrentPage = () => {
+    // Helper function to determine home page based on role
+    const getHomePage = () => {
+      return userData?.Role === 'admin' ? 'eventManagement' : 'dashboard';
+    };
+    
+    const navigateHome = () => setCurrentPage(getHomePage());
+
     switch (currentPage) {
       case "landing":
         return (
@@ -128,23 +153,23 @@ function App() {
           />
         );
       case "profile":
-        return <UserProfile userData={userData} navigateToHome={() => setCurrentPage("dashboard")} updateUserData={updateUserData} />;
+        return <UserProfile userData={userData} navigateToHome={navigateHome} updateUserData={updateUserData} />;
       case "assignments":
-        return <MyAssignments userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
+        return <MyAssignments userData={userData} navigateToHome={navigateHome} />;
       case "events":
-        return <EventsList userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
+        return <EventsList userData={userData} navigateToHome={navigateHome} />;
       case "eventManagement":
-        return <EventManagement userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
+        return <EventManagement userData={userData} navigateToHome={navigateHome} />;
       case "matching":
-        return <VolunteerMatching userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
+        return <VolunteerMatching userData={userData} navigateToHome={navigateHome} />;
       case "notifications":
-        return <Notifications userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
+        return <Notifications userData={userData} navigateToHome={navigateHome} />;
       case "history":
-        return <VolunteerHistory userData={userData} navigateToHome={() => setCurrentPage("dashboard")} />;
+        return <VolunteerHistory userData={userData} navigateToHome={navigateHome} />;
       case "reports":
-        return <AdminReports navigateToHome={() => setCurrentPage("dashboard")} />;
+        return <AdminReports navigateToHome={navigateHome} />;
       case "userManagement":
-        return <UserManagement navigateToHome={() => setCurrentPage("dashboard")} />;
+        return <UserManagement navigateToHome={navigateHome} />;
       default:
         return (
           <LandingPage

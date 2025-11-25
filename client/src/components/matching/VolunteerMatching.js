@@ -20,8 +20,18 @@ const VolunteerMatching = ({ userData, navigateToHome }) => {
       const response = await fetch('/api/events');
       const data = await response.json();
       if (data.success) {
-        // Filter for published events
-        const publishedEvents = data.events.filter(e => e.EventStatus === 'published' && new Date(e.EventDate) >= new Date());
+        const now = new Date();
+        const publishedEvents = data.events.filter(e => {
+          if (e.EventStatus !== 'published') return false;
+          
+          // Create event date/time
+          const eventDate = new Date(e.EventDate);
+          const [hours, minutes] = (e.EndTime || '23:59').split(':');
+          eventDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+          
+          // Only show events that haven't ended yet
+          return eventDate >= now;
+        });
         setEvents(publishedEvents);
       }
     } catch (error) {

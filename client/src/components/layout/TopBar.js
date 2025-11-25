@@ -204,8 +204,8 @@ const TopBar = ({
                 <button className="user-menu-button">⚙️</button>
                 {openDropdown === 'user' && (
                   <div className="dropdown-menu user-dropdown">
-                    <div className="dropdown-item" onClick={navigateToHome}>
-                      Dashboard
+                    <div className="dropdown-item" onClick={isAdmin ? navigateToEventManagement : navigateToHome}>
+                      {isAdmin ? 'Event Management' : 'Dashboard'}
                     </div>
                     <div className="dropdown-item" onClick={navigateToProfile}>
                       My Profile

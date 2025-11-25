@@ -1,85 +1,116 @@
-const pool = require('../config/db');
-const { parseRequestBody, sendJsonResponse } = require('../utils/requestUtils');
+// Correct imports
 const {
   getVolunteerHistory,
   getAllVolunteerHistory,
   addVolunteerHistory,
   updateVolunteerHistory
-} = require('../controllers/historyRoutes');
+} = require("../routes/historyRoutes");
 
-// Mock DB + Util methods
-jest.mock('../config/db', () => ({ query: jest.fn() }));
+const pool = require("../config/db");
+const { parseRequestBody, sendJsonResponse } = require("../utils/requestUtils");
 
-jest.mock('../utils/requestUtils', () => ({
+// Mock DB + utils
+jest.mock("../config/db", () => ({ query: jest.fn() }));
+jest.mock("../utils/requestUtils", () => ({
   parseRequestBody: jest.fn(),
   sendJsonResponse: jest.fn()
 }));
 
-// Mock req & res
+let consoleSpy;
+
+beforeEach(() => {
+  jest.clearAllMocks();
+
+  // Suppress console.error output during tests
+  consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+});
+
+afterEach(() => {
+  consoleSpy.mockRestore();
+});
+
+// Mock req/res objects
 const mockReq = {};
 const mockRes = {};
 
-// Reset mocks before each test
-beforeEach(() => {
-  jest.clearAllMocks();
-});
+describe("History Routes", () => {
 
-describe("getVolunteerHistory", () => {
-  it("returns history successfully", () => {
-    const mockResults = [{
-      HistoryID: 1,
-      RequiredSkills: "CPR,FirstAid"
-    }];
+  // ------------------------------------------------------
+  // 🔹 getVolunteerHistory
+  // ------------------------------------------------------
+  test("getVolunteerHistory returns history", () => {
+    pool.query.mockImplementation((_q, _params, cb) =>
+      cb(null, [{ HistoryID: 1, RequiredSkills: "CPR,Driving" }])
+    );
 
-    pool.query.mockImplementation((_q, _d, cb) => cb(null, mockResults));
+    getVolunteerHistory(mockReq, mockRes, 1);
 
-    getVolunteerHistory(mockReq, mockRes, 5);
-
-    expect(pool.query).toHaveBeenCalled();
-    expect(sendJsonResponse).toHaveBeenCalledWith(mockRes, 200, {
-      success: true,
-      history: [{
-        HistoryID: 1,
-        RequiredSkills: ["CPR", "FirstAid"]
-      }]
-    });
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      mockRes,
+      200,
+      expect.objectContaining({
+        success: true,
+        history: [
+          { HistoryID: 1, RequiredSkills: ["CPR", "Driving"] }
+        ]
+      })
+    );
   });
 
-  it("handles DB error", () => {
-    pool.query.mockImplementation((_q, _d, cb) => cb(new Error("DB Error")));
+  test("getVolunteerHistory handles DB error", () => {
+    pool.query.mockImplementation((_q, _params, cb) =>
+      cb(new Error("DB Error"), null)
+    );
 
-    getVolunteerHistory(mockReq, mockRes, 5);
+    getVolunteerHistory(mockReq, mockRes, 1);
 
-    expect(sendJsonResponse).toHaveBeenCalledWith(mockRes, 500, {
-      success: false,
-      error: "Internal server error"
-    });
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      mockRes,
+      500,
+      { success: false, error: "Internal server error" }
+    );
   });
-});
 
-describe("getAllVolunteerHistory", () => {
-  it("returns all history", () => {
-    const mockResults = [{
-      HistoryID: 3,
-      RequiredSkills: "FoodPrep"
-    }];
-
-    pool.query.mockImplementation((_q, cb) => cb(null, mockResults));
+  // ------------------------------------------------------
+  // 🔹 getAllVolunteerHistory
+  // ------------------------------------------------------
+  test("getAllVolunteerHistory returns all history", () => {
+    pool.query.mockImplementation((_q, cb) =>
+      cb(null, [{ HistoryID: 2, RequiredSkills: "FoodPrep" }])
+    );
 
     getAllVolunteerHistory(mockReq, mockRes);
 
-    expect(sendJsonResponse).toHaveBeenCalledWith(mockRes, 200, {
-      success: true,
-      history: [{
-        HistoryID: 3,
-        RequiredSkills: ["FoodPrep"]
-      }]
-    });
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      mockRes,
+      200,
+      expect.objectContaining({
+        success: true,
+        history: [
+          { HistoryID: 2, RequiredSkills: ["FoodPrep"] }
+        ]
+      })
+    );
   });
-});
 
-describe("addVolunteerHistory", () => {
-  it("adds record successfully", async () => {
+  test("getAllVolunteerHistory handles DB error", () => {
+    pool.query.mockImplementation((_q, cb) =>
+      cb(new Error("DB Error"), null)
+    );
+
+    getAllVolunteerHistory(mockReq, mockRes);
+
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      mockRes,
+      500,
+      { success: false, error: "Internal server error" }
+    );
+  });
+
+  // ------------------------------------------------------
+  // 🔹 addVolunteerHistory
+  // ------------------------------------------------------
+  test("addVolunteerHistory adds record successfully", async () => {
     parseRequestBody.mockResolvedValue({
       VolunteerID: 1,
       EventID: 2,
@@ -88,57 +119,73 @@ describe("addVolunteerHistory", () => {
       ParticipationDate: "2024-01-01"
     });
 
-    pool.query.mockImplementation((_q, _d, cb) => cb(null, { insertId: 10 }));
+    pool.query.mockImplementation((_q, _d, cb) =>
+      cb(null, { insertId: 10 })
+    );
 
     await addVolunteerHistory(mockReq, mockRes);
 
-    expect(sendJsonResponse).toHaveBeenCalledWith(mockRes, 200, {
-      success: true,
-      historyID: 10,
-      message: "History record added successfully"
-    });
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      mockRes,
+      200,
+      {
+        success: true,
+        historyID: 10,
+        message: "History record added successfully"
+      }
+    );
   });
 
-  it("handles DB insert error", async () => {
+  test("addVolunteerHistory handles DB insert error", async () => {
     parseRequestBody.mockResolvedValue({});
-    pool.query.mockImplementation((_q, _d, cb) => cb(new Error()));
+    pool.query.mockImplementation((_q, _d, cb) =>
+      cb(new Error("Insert Error"), null)
+    );
 
     await addVolunteerHistory(mockReq, mockRes);
 
-    expect(sendJsonResponse).toHaveBeenCalledWith(mockRes, 500, {
-      success: false,
-      error: "Failed to add volunteer history"
-    });
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      mockRes,
+      500,
+      { success: false, error: "Failed to add volunteer history" }
+    );
   });
-});
 
-describe("updateVolunteerHistory", () => {
-  it("updates history successfully", async () => {
+  // ------------------------------------------------------
+  // 🔹 updateVolunteerHistory
+  // ------------------------------------------------------
+  test("updateVolunteerHistory updates successfully", async () => {
     parseRequestBody.mockResolvedValue({
       HistoryID: 7,
       ParticipationStatus: "Cancelled",
-      HoursVolunteered: 2
+      HoursVolunteered: 3
     });
 
-    pool.query.mockImplementation((_q, _d, cb) => cb(null));
+    pool.query.mockImplementation((_q, _d, cb) =>
+      cb(null, {})
+    );
 
     await updateVolunteerHistory(mockReq, mockRes);
 
-    expect(sendJsonResponse).toHaveBeenCalledWith(mockRes, 200, {
-      success: true,
-      message: "History record updated successfully"
-    });
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      mockRes,
+      200,
+      { success: true, message: "History record updated successfully" }
+    );
   });
 
-  it("handles update error", async () => {
+  test("updateVolunteerHistory handles error", async () => {
     parseRequestBody.mockResolvedValue({});
-    pool.query.mockImplementation((_q, _d, cb) => cb(new Error()));
+    pool.query.mockImplementation((_q, _d, cb) =>
+      cb(new Error("Update Error"), null)
+    );
 
     await updateVolunteerHistory(mockReq, mockRes);
 
-    expect(sendJsonResponse).toHaveBeenCalledWith(mockRes, 500, {
-      success: false,
-      error: "Failed to update volunteer history"
-    });
+    expect(sendJsonResponse).toHaveBeenCalledWith(
+      mockRes,
+      500,
+      { success: false, error: "Failed to update volunteer history" }
+    );
   });
 });
